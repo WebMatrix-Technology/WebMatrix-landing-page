@@ -8,9 +8,10 @@ export const CTA = () => {
     <section className="py-24">
       <div className="container mx-auto px-4">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          initial={{ opacity: 0, y: 60, scale: 0.95 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           className="relative overflow-hidden rounded-3xl p-12 md:p-16 lg:p-20 text-center"
           style={{
             background: 'var(--gradient-primary)',
