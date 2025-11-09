@@ -1,35 +1,13 @@
+// src/components/home/FeaturedWork.tsx
+
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { projects } from '@/data/projects'; // Import data
 
-const projects = [
-  {
-    id: 1,
-    title: 'FinTech Dashboard',
-    description: 'Real-time financial analytics with 3D data visualization',
-    tags: ['React', 'Three.js', 'WebGL'],
-    image: '/placeholder.svg',
-    metrics: { improvement: '45%', metric: 'User Engagement' },
-  },
-  {
-    id: 2,
-    title: 'E-commerce Platform',
-    description: 'High-performance storefront with micro-interactions',
-    tags: ['Next.js', 'Framer Motion', 'Stripe'],
-    image: '/placeholder.svg',
-    metrics: { improvement: '3x', metric: 'Conversion Rate' },
-  },
-  {
-    id: 3,
-    title: 'SaaS Marketing Site',
-    description: 'Premium landing with scroll-linked animations',
-    tags: ['React', 'GSAP', 'Tailwind'],
-    image: '/placeholder.svg',
-    metrics: { improvement: '95+', metric: 'Lighthouse Score' },
-  },
-];
+const featuredProjects = projects.slice(0, 3); // Get first 3 projects for the homepage
 
 export const FeaturedWork = () => {
   return (
@@ -51,7 +29,7 @@ export const FeaturedWork = () => {
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {projects.map((project, index) => (
+          {featuredProjects.map((project, index) => ( // Use featuredProjects
             <motion.div
               key={project.id}
               initial={{ opacity: 0, y: 50, scale: 0.9 }}
@@ -63,38 +41,44 @@ export const FeaturedWork = () => {
                 ease: [0.22, 1, 0.36, 1]
               }}
             >
-              <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all hover:shadow-glow">
-                <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 relative overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/50">
-                    [Project Screenshot]
-                  </div>
-                  <div className="absolute top-4 right-4">
-                    <ExternalLink className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                </div>
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-display font-semibold mb-2 group-hover:text-gradient transition-colors">
-                    {project.title}
-                  </h3>
-                  <p className="text-muted-foreground mb-4">{project.description}</p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {project.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-between pt-4 border-t border-border">
-                    <div>
-                      <div className="text-2xl font-bold text-primary">{project.metrics.improvement}</div>
-                      <div className="text-xs text-muted-foreground">{project.metrics.metric}</div>
+              {/* This Link tag now wraps the entire card */}
+              <Link to={`/work/${project.id}`}>
+                <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all hover:shadow-glow h-full">
+                  <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 relative overflow-hidden">
+                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/50">
+                      [Project Screenshot]
                     </div>
-                    <Link to={`/work/${project.id}`} className="text-primary hover:text-accent transition-colors">
-                      View Case Study →
-                    </Link>
+                    <div className="absolute top-4 right-4">
+                      <ExternalLink className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-display font-semibold mb-2 group-hover:text-gradient transition-colors">
+                      {project.title}
+                    </h3>
+                    <p className="text-muted-foreground mb-4">{project.description}</p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {project.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                    {project.metrics && ( // Check if metrics exist
+                      <div className="flex items-center justify-between pt-4 border-t border-border">
+                        <div>
+                          <div className="text-2xl font-bold text-primary">{project.metrics.improvement}</div>
+                          <div className="text-xs text-muted-foreground">{project.metrics.metric}</div>
+                        </div>
+                        {/* Changed the Link to plain text since the card is the link */}
+                        <div className="text-primary text-sm font-medium">
+                          View Case Study →
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
             </motion.div>
           ))}
         </div>

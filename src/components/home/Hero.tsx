@@ -3,6 +3,8 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Scene3D } from '@/components/3d/Scene3D';
 import { Link } from 'react-router-dom';
+import { DevicePreview } from '@/components/ui/device-preview';
+import { projects } from '@/data/projects';
 
 export const Hero = () => {
   return (
@@ -13,7 +15,7 @@ export const Hero = () => {
       </div>
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/50 to-background/80 z-10" />
+      <div className="absolute inset-0 bg-gradient-to-b dark:from-background/80 dark:via-background/50 dark:to-background/80 from-white/10 via-white/5 to-white/10 z-10" />
 
       {/* Content - Golden Ratio Layout (61.8% content, 38.2% spacing) */}
       <div className="relative z-20 container mx-auto px-4 py-32">
@@ -72,6 +74,20 @@ export const Hero = () => {
               <Link to="/work">See Our Work</Link>
             </Button>
           </motion.div>
+
+          {/* Featured project preview */}
+          <div className="mt-12">
+            {projects[0] && (
+              <div className="max-w-4xl mx-auto">
+                <DevicePreview
+                  desktopImage={projects[0].image}
+                  mobileImage={(projects[0] as any).mobileImage}
+                  title={projects[0].title}
+                  className="mx-auto"
+                />
+              </div>
+            )}
+          </div>
 
           {/* Trust Indicators */}
           <motion.div

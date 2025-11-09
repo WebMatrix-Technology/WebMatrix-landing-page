@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export const Scene3D = () => {
+  const { theme } = useTheme();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
 
@@ -11,7 +13,7 @@ export const Scene3D = () => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size
+      // Set canvas size
     const resizeCanvas = () => {
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
@@ -46,8 +48,10 @@ export const Scene3D = () => {
     
     // Animation loop
     const draw = () => {
-      // Semi-transparent black to create fade effect
-      ctx.fillStyle = 'rgba(11, 15, 25, 0.05)';
+      // Semi-transparent fade effect
+      ctx.fillStyle = theme === 'dark' 
+        ? 'rgba(0, 0, 0, 0.1)' 
+        : 'rgba(255, 255, 255, 0.12)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Set text properties
@@ -85,21 +89,33 @@ export const Scene3D = () => {
         
         // Color based on proximity to mouse
         let color;
+        const alpha = theme === 'dark' ? 1 : 0.8; // Adjust transparency for light mode
+        
         if (distance < maxInfluence / 2) {
           // Bright cyan near mouse
-          color = `rgba(0, 209, 255, ${0.9 + Math.random() * 0.1})`;
+          color = theme === 'dark'
+            ? `rgba(0, 255, 255, ${(0.95 + Math.random() * 0.05) * alpha})`
+            : `rgba(0, 100, 255, ${(0.95 + Math.random() * 0.05) * alpha})`;
         } else if (distance < maxInfluence) {
-          // Purple in medium range
-          color = `rgba(108, 92, 231, ${0.7 + Math.random() * 0.3})`;
+          // Purple/Blue in medium range
+          color = theme === 'dark'
+            ? `rgba(128, 0, 255, ${(0.85 + Math.random() * 0.15) * alpha})`
+            : `rgba(0, 100, 200, ${(0.85 + Math.random() * 0.15) * alpha})`;
         } else if (Math.random() > 0.95) {
-          // Accent color (cyan) for highlights
-          color = `rgba(0, 209, 255, ${0.8 + Math.random() * 0.2})`;
+          // Bright highlights
+          color = theme === 'dark'
+            ? `rgba(0, 255, 255, ${(0.9 + Math.random() * 0.1) * alpha})`
+            : `rgba(0, 120, 255, ${(0.9 + Math.random() * 0.1) * alpha})`;
         } else if (Math.random() > 0.9) {
-          // Primary color (purple) for variety
-          color = `rgba(108, 92, 231, ${0.6 + Math.random() * 0.4})`;
+          // Secondary highlights
+          color = theme === 'dark'
+            ? `rgba(170, 255, 170, ${(0.8 + Math.random() * 0.2) * alpha})`
+            : `rgba(0, 80, 200, ${(0.8 + Math.random() * 0.2) * alpha})`;
         } else {
-          // Green Matrix-style
-          color = `rgba(34, 197, 94, ${0.5 + Math.random() * 0.5})`;
+          // Base matrix color
+          color = theme === 'dark'
+            ? `rgba(0, 255, 70, ${(0.7 + Math.random() * 0.3) * alpha})`
+            : `rgba(0, 60, 180, ${(0.7 + Math.random() * 0.3) * alpha})`;
         }
         
         ctx.fillStyle = color;
@@ -135,10 +151,10 @@ export const Scene3D = () => {
       canvas.removeEventListener('mousemove', handleMouseMove);
       canvas.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [mousePos]);
+  }, [mousePos, theme]);
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full bg-white dark:bg-black transition-colors duration-300">
       <canvas
         ref={canvasRef}
         className="w-full h-full"

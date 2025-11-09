@@ -1,3 +1,5 @@
+// src/App.tsx
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +16,7 @@ import About from "./pages/About";
 import Blog from "./pages/Blog";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import WorkDetail from "./pages/WorkDetail"; // Import the new component
 
 const queryClient = new QueryClient();
 
@@ -30,6 +33,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/work" element={<Work />} />
+                <Route path="/work/:id" element={<WorkDetail />} /> {/* Add this new route */}
                 <Route path="/services" element={<Services />} />
                 <Route path="/process" element={<Process />} />
                 <Route path="/about" element={<About />} />

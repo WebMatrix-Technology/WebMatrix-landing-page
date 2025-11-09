@@ -1,59 +1,12 @@
+// src/pages/Work.tsx
+
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const projects = [
-  {
-    id: 1,
-    title: 'FinTech Dashboard',
-    description: 'Real-time financial analytics platform with 3D data visualization',
-    category: 'Finance',
-    tags: ['React', 'Three.js', 'WebGL', 'D3.js'],
-    image: '/placeholder.svg',
-  },
-  {
-    id: 2,
-    title: 'E-commerce Platform',
-    description: 'High-performance storefront with advanced micro-interactions',
-    category: 'E-commerce',
-    tags: ['Next.js', 'Framer Motion', 'Stripe', 'Tailwind'],
-    image: '/placeholder.svg',
-  },
-  {
-    id: 3,
-    title: 'SaaS Marketing Site',
-    description: 'Premium landing page with scroll-linked animations',
-    category: 'SaaS',
-    tags: ['React', 'GSAP', 'Tailwind', 'TypeScript'],
-    image: '/placeholder.svg',
-  },
-  {
-    id: 4,
-    title: 'Healthcare Portal',
-    description: 'HIPAA-compliant patient management system',
-    category: 'Healthcare',
-    tags: ['React', 'Node.js', 'PostgreSQL', 'AWS'],
-    image: '/placeholder.svg',
-  },
-  {
-    id: 5,
-    title: 'Real Estate Platform',
-    description: 'Interactive property showcase with virtual tours',
-    category: 'Real Estate',
-    tags: ['Next.js', 'Three.js', 'Mapbox', 'Sanity'],
-    image: '/placeholder.svg',
-  },
-  {
-    id: 6,
-    title: 'Education LMS',
-    description: 'Modern learning management system with gamification',
-    category: 'Education',
-    tags: ['React', 'Firebase', 'Framer Motion', 'WebRTC'],
-    image: '/placeholder.svg',
-  },
-];
+import { projects } from '@/data/projects';
+import { DevicePreview } from '@/components/ui/device-preview';
 
 const Work = () => {
   return (
@@ -73,7 +26,7 @@ const Work = () => {
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projects.map((project, index) => (
+          {projects.map((project, index) => ( // Use the imported projects
             <motion.div
               key={project.id}
               initial={{ opacity: 0, y: 30 }}
@@ -82,11 +35,17 @@ const Work = () => {
             >
               <Link to={`/work/${project.id}`}>
                 <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all hover:shadow-glow cursor-pointer h-full">
-                  <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 relative overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/50">
-                      [Project Screenshot]
-                    </div>
-                    <div className="absolute top-4 right-4">
+                  <div className="relative aspect-[4/3] md:aspect-[16/9] overflow-hidden">
+                    <DevicePreview
+                      desktopImage={project.image}
+                      mobileImage={project.mobileImage}
+                      title={project.title}
+                      className="transform transition-transform duration-500 group-hover:scale-105"
+                    />
+                    
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute top-4 right-4 z-10">
                       <ExternalLink className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity text-white" />
                     </div>
                   </div>
