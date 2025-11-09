@@ -15,14 +15,14 @@ export const Hero = () => {
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/50 to-background/80 z-10" />
 
-      {/* Content */}
+      {/* Content - Golden Ratio Layout (61.8% content, 38.2% spacing) */}
       <div className="relative z-20 container mx-auto px-4 py-32">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="mx-auto text-center" style={{ maxWidth: '61.8%' }}>
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-6"
+            style={{ marginBottom: 'calc(1.618rem * 1.618)' }}
           >
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-medium mb-6">
               <Sparkles className="h-4 w-4 text-accent" />
@@ -34,7 +34,8 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-4xl md:text-5xl lg:text-display-lg font-display mb-6"
+            className="text-4xl md:text-5xl lg:text-display-lg font-display"
+            style={{ marginBottom: 'calc(1.618rem * 1.618)' }}
           >
             We craft{' '}
             <span className="text-gradient">fast, beautiful</span>
@@ -46,7 +47,11 @@ export const Hero = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto"
+            className="text-lg md:text-xl text-muted-foreground mx-auto"
+            style={{ 
+              marginBottom: 'calc(1.618rem * 2.618)',
+              maxWidth: '61.8%' 
+            }}
           >
             From concept to launch—3D, motion, and full-stack development that converts.
           </motion.p>
@@ -73,7 +78,8 @@ export const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.7 }}
-            className="mt-16 flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground"
+            className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground"
+            style={{ marginTop: 'calc(1.618rem * 4)' }}
           >
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-success" />

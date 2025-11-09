@@ -6,151 +6,243 @@ import * as THREE from 'three';
 const CodeSymbols = () => {
   return (
     <group>
-      {/* HTML Opening Bracket < */}
+      {/* Laptop/Monitor */}
+      <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.4}>
+        <group position={[-3, 0, 0]} rotation={[0, Math.PI / 6, 0]}>
+          {/* Screen */}
+          <mesh castShadow>
+            <boxGeometry args={[2.5, 1.8, 0.1]} />
+            <meshStandardMaterial
+              color="#1a1a2e"
+              roughness={0.3}
+              metalness={0.7}
+              emissive="#6C5CE7"
+              emissiveIntensity={0.3}
+            />
+          </mesh>
+          {/* Screen glow */}
+          <mesh position={[0, 0, 0.06]}>
+            <boxGeometry args={[2.3, 1.6, 0.05]} />
+            <meshStandardMaterial
+              color="#00D1FF"
+              emissive="#00D1FF"
+              emissiveIntensity={0.8}
+              transparent
+              opacity={0.9}
+            />
+          </mesh>
+          {/* Base */}
+          <mesh position={[0, -1.1, 0.3]} castShadow>
+            <boxGeometry args={[2.5, 0.15, 1]} />
+            <meshStandardMaterial
+              color="#2a2a3e"
+              roughness={0.2}
+              metalness={0.8}
+            />
+          </mesh>
+        </group>
+      </Float>
+
+      {/* Floating Code Window */}
       <Float speed={2} rotationIntensity={0.3} floatIntensity={0.6}>
-        <mesh position={[-2, 0.5, 0]} castShadow rotation={[0, Math.PI / 6, 0]}>
-          <boxGeometry args={[0.3, 2, 0.3]} />
-          <meshStandardMaterial
-            color="#6C5CE7"
-            roughness={0.2}
-            metalness={0.8}
-            emissive="#6C5CE7"
-            emissiveIntensity={0.6}
-          />
-        </mesh>
-        <mesh position={[-1.3, 1, 0]} castShadow rotation={[0, 0, -Math.PI / 4]}>
-          <boxGeometry args={[1.2, 0.3, 0.3]} />
-          <meshStandardMaterial
-            color="#6C5CE7"
-            roughness={0.2}
-            metalness={0.8}
-            emissive="#6C5CE7"
-            emissiveIntensity={0.6}
-          />
-        </mesh>
-        <mesh position={[-1.3, 0, 0]} castShadow rotation={[0, 0, Math.PI / 4]}>
-          <boxGeometry args={[1.2, 0.3, 0.3]} />
-          <meshStandardMaterial
-            color="#6C5CE7"
-            roughness={0.2}
-            metalness={0.8}
-            emissive="#6C5CE7"
-            emissiveIntensity={0.6}
-          />
-        </mesh>
+        <group position={[3, 1, -1]} rotation={[0, -Math.PI / 4, 0]}>
+          {/* Window frame */}
+          <mesh castShadow>
+            <boxGeometry args={[2, 2.5, 0.1]} />
+            <meshStandardMaterial
+              color="#1e1e30"
+              roughness={0.3}
+              metalness={0.7}
+            />
+          </mesh>
+          {/* Code lines */}
+          <mesh position={[-0.6, 0.8, 0.06]} castShadow>
+            <boxGeometry args={[0.8, 0.08, 0.05]} />
+            <meshStandardMaterial
+              color="#6C5CE7"
+              emissive="#6C5CE7"
+              emissiveIntensity={0.6}
+            />
+          </mesh>
+          <mesh position={[-0.5, 0.5, 0.06]} castShadow>
+            <boxGeometry args={[1.2, 0.08, 0.05]} />
+            <meshStandardMaterial
+              color="#00D1FF"
+              emissive="#00D1FF"
+              emissiveIntensity={0.6}
+            />
+          </mesh>
+          <mesh position={[-0.4, 0.2, 0.06]} castShadow>
+            <boxGeometry args={[1, 0.08, 0.05]} />
+            <meshStandardMaterial
+              color="#8B5CF6"
+              emissive="#8B5CF6"
+              emissiveIntensity={0.5}
+            />
+          </mesh>
+          <mesh position={[-0.7, -0.1, 0.06]} castShadow>
+            <boxGeometry args={[0.6, 0.08, 0.05]} />
+            <meshStandardMaterial
+              color="#60A5FA"
+              emissive="#60A5FA"
+              emissiveIntensity={0.5}
+            />
+          </mesh>
+          <mesh position={[-0.5, -0.4, 0.06]} castShadow>
+            <boxGeometry args={[1.1, 0.08, 0.05]} />
+            <meshStandardMaterial
+              color="#F59E0B"
+              emissive="#F59E0B"
+              emissiveIntensity={0.6}
+            />
+          </mesh>
+        </group>
       </Float>
 
-      {/* HTML Closing Bracket > */}
-      <Float speed={2.2} rotationIntensity={0.3} floatIntensity={0.7}>
-        <mesh position={[2, 0.5, 0]} castShadow rotation={[0, -Math.PI / 6, 0]}>
-          <boxGeometry args={[0.3, 2, 0.3]} />
-          <meshStandardMaterial
-            color="#00D1FF"
-            roughness={0.2}
-            metalness={0.8}
-            emissive="#00D1FF"
-            emissiveIntensity={0.6}
-          />
-        </mesh>
-        <mesh position={[1.3, 1, 0]} castShadow rotation={[0, 0, Math.PI / 4]}>
-          <boxGeometry args={[1.2, 0.3, 0.3]} />
-          <meshStandardMaterial
-            color="#00D1FF"
-            roughness={0.2}
-            metalness={0.8}
-            emissive="#00D1FF"
-            emissiveIntensity={0.6}
-          />
-        </mesh>
-        <mesh position={[1.3, 0, 0]} castShadow rotation={[0, 0, -Math.PI / 4]}>
-          <boxGeometry args={[1.2, 0.3, 0.3]} />
-          <meshStandardMaterial
-            color="#00D1FF"
-            roughness={0.2}
-            metalness={0.8}
-            emissive="#00D1FF"
-            emissiveIntensity={0.6}
-          />
-        </mesh>
+      {/* Git Branch Symbol */}
+      <Float speed={2.2} rotationIntensity={0.4} floatIntensity={0.7}>
+        <group position={[0, -2, 1]}>
+          {/* Main branch line */}
+          <mesh castShadow rotation={[0, 0, Math.PI / 6]}>
+            <cylinderGeometry args={[0.08, 0.08, 2, 16]} />
+            <meshStandardMaterial
+              color="#22C55E"
+              roughness={0.2}
+              metalness={0.8}
+              emissive="#22C55E"
+              emissiveIntensity={0.5}
+            />
+          </mesh>
+          {/* Branch nodes */}
+          <mesh position={[0, 0.7, 0]} castShadow>
+            <sphereGeometry args={[0.2, 16, 16]} />
+            <meshStandardMaterial
+              color="#22C55E"
+              roughness={0.1}
+              metalness={0.9}
+              emissive="#22C55E"
+              emissiveIntensity={0.7}
+            />
+          </mesh>
+          <mesh position={[0, -0.7, 0]} castShadow>
+            <sphereGeometry args={[0.2, 16, 16]} />
+            <meshStandardMaterial
+              color="#22C55E"
+              roughness={0.1}
+              metalness={0.9}
+              emissive="#22C55E"
+              emissiveIntensity={0.7}
+            />
+          </mesh>
+          {/* Side branch */}
+          <mesh position={[0.5, 0, 0]} castShadow rotation={[0, 0, -Math.PI / 3]}>
+            <cylinderGeometry args={[0.06, 0.06, 1, 16]} />
+            <meshStandardMaterial
+              color="#60A5FA"
+              roughness={0.2}
+              metalness={0.8}
+              emissive="#60A5FA"
+              emissiveIntensity={0.5}
+            />
+          </mesh>
+        </group>
       </Float>
 
-      {/* Curly Brace { */}
-      <Float speed={2.5} rotationIntensity={0.4} floatIntensity={0.8}>
-        <mesh position={[-3.5, -1.5, 1]} castShadow>
-          <torusGeometry args={[0.4, 0.15, 16, 32, Math.PI]} />
-          <meshStandardMaterial
-            color="#8B5CF6"
-            roughness={0.1}
-            metalness={0.9}
-            emissive="#8B5CF6"
-            emissiveIntensity={0.5}
-          />
-        </mesh>
-        <mesh position={[-3.5, -1.5, 1]} castShadow>
-          <boxGeometry args={[0.15, 0.8, 0.15]} />
-          <meshStandardMaterial
-            color="#8B5CF6"
-            roughness={0.1}
-            metalness={0.9}
-            emissive="#8B5CF6"
-            emissiveIntensity={0.5}
-          />
-        </mesh>
+      {/* API/Function Brackets */}
+      <Float speed={2.5} rotationIntensity={0.3} floatIntensity={0.8}>
+        <group position={[2.5, -1.5, 0.5]}>
+          {/* Opening curly brace */}
+          <mesh castShadow>
+            <torusGeometry args={[0.4, 0.12, 16, 32, Math.PI]} />
+            <meshStandardMaterial
+              color="#8B5CF6"
+              roughness={0.1}
+              metalness={0.9}
+              emissive="#8B5CF6"
+              emissiveIntensity={0.6}
+            />
+          </mesh>
+          <mesh position={[0, -0.2, 0]} castShadow>
+            <boxGeometry args={[0.12, 0.6, 0.12]} />
+            <meshStandardMaterial
+              color="#8B5CF6"
+              roughness={0.1}
+              metalness={0.9}
+              emissive="#8B5CF6"
+              emissiveIntensity={0.6}
+            />
+          </mesh>
+        </group>
       </Float>
 
-      {/* Forward Slash / */}
-      <Float speed={3} rotationIntensity={0.5} floatIntensity={0.9}>
-        <mesh position={[0, -1.8, -0.5]} castShadow rotation={[0, 0, -Math.PI / 6]}>
-          <boxGeometry args={[0.3, 2.5, 0.3]} />
-          <meshStandardMaterial
-            color="#60A5FA"
-            roughness={0.15}
-            metalness={0.85}
-            emissive="#60A5FA"
-            emissiveIntensity={0.5}
-          />
-        </mesh>
-      </Float>
-
-      {/* Terminal cursor block */}
-      <Float speed={2.8} rotationIntensity={0.2} floatIntensity={1}>
-        <mesh position={[3.5, -1, -1]} castShadow>
-          <boxGeometry args={[0.6, 1.2, 0.3]} />
+      {/* Terminal Cursor */}
+      <Float speed={3} rotationIntensity={0.1} floatIntensity={1}>
+        <mesh position={[-1, 2, 1]} castShadow>
+          <boxGeometry args={[0.15, 1, 0.1]} />
           <MeshDistortMaterial
             color="#22C55E"
             attach="material"
-            distort={0.2}
-            speed={2}
+            distort={0.15}
+            speed={3}
             roughness={0.2}
             metalness={0.8}
             emissive="#22C55E"
-            emissiveIntensity={0.6}
+            emissiveIntensity={0.8}
           />
         </mesh>
       </Float>
 
-      {/* Semicolon ; */}
-      <Float speed={3.5} rotationIntensity={0.6} floatIntensity={1.1}>
-        <mesh position={[1.5, 2, 1]} castShadow>
-          <sphereGeometry args={[0.15, 16, 16]} />
-          <meshStandardMaterial
-            color="#F59E0B"
-            roughness={0.2}
-            metalness={0.8}
-            emissive="#F59E0B"
-            emissiveIntensity={0.6}
-          />
-        </mesh>
-        <mesh position={[1.5, 1.5, 1]} castShadow>
-          <boxGeometry args={[0.15, 0.4, 0.15]} />
-          <meshStandardMaterial
-            color="#F59E0B"
-            roughness={0.2}
-            metalness={0.8}
-            emissive="#F59E0B"
-            emissiveIntensity={0.6}
-          />
-        </mesh>
+      {/* Database/Stack Symbol */}
+      <Float speed={2.8} rotationIntensity={0.4} floatIntensity={0.9}>
+        <group position={[-2, -1.5, -1]}>
+          {/* Three stacked cylinders representing database layers */}
+          <mesh position={[0, 0.4, 0]} castShadow>
+            <cylinderGeometry args={[0.6, 0.6, 0.15, 32]} />
+            <meshStandardMaterial
+              color="#F59E0B"
+              roughness={0.2}
+              metalness={0.8}
+              emissive="#F59E0B"
+              emissiveIntensity={0.4}
+            />
+          </mesh>
+          <mesh position={[0, 0, 0]} castShadow>
+            <cylinderGeometry args={[0.6, 0.6, 0.15, 32]} />
+            <meshStandardMaterial
+              color="#F59E0B"
+              roughness={0.2}
+              metalness={0.8}
+              emissive="#F59E0B"
+              emissiveIntensity={0.5}
+            />
+          </mesh>
+          <mesh position={[0, -0.4, 0]} castShadow>
+            <cylinderGeometry args={[0.6, 0.6, 0.15, 32]} />
+            <meshStandardMaterial
+              color="#F59E0B"
+              roughness={0.2}
+              metalness={0.8}
+              emissive="#F59E0B"
+              emissiveIntensity={0.6}
+            />
+          </mesh>
+        </group>
+      </Float>
+
+      {/* React/Component Symbol - Abstract triangular structure */}
+      <Float speed={3.2} rotationIntensity={0.5} floatIntensity={0.7}>
+        <group position={[4, 0.5, 2]}>
+          <mesh castShadow rotation={[0, 0, 0]}>
+            <coneGeometry args={[0.5, 1, 3]} />
+            <meshStandardMaterial
+              color="#00D1FF"
+              roughness={0.15}
+              metalness={0.85}
+              emissive="#00D1FF"
+              emissiveIntensity={0.6}
+            />
+          </mesh>
+        </group>
       </Float>
     </group>
   );
