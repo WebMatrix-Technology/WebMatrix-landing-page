@@ -6,6 +6,7 @@ import { ArrowRight, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { projects } from '@/data/projects'; // Import data
+import { DevicePreview } from '@/components/ui/device-preview';
 
 const featuredProjects = projects.slice(0, 3); // Get first 3 projects for the homepage
 
@@ -44,10 +45,23 @@ export const FeaturedWork = () => {
               {/* This Link tag now wraps the entire card */}
               <Link to={`/work/${project.id}`}>
                 <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all hover:shadow-glow h-full">
-                  <div className="aspect-video bg-gradient-to-br from-primary/20 to-accent/20 relative overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/50">
-                      [Project Screenshot]
+                  <div className="aspect-video relative overflow-hidden rounded-t-lg bg-zinc-900">
+                    {/* Use DevicePreview to show desktop + mobile preview */}
+                    <div className="absolute inset-0 p-6 flex items-center justify-center">
+                      <div className="w-full">
+                        <DevicePreview
+                          desktopImage={project.image}
+                          mobileImage={project.mobileImage}
+                          title={project.title}
+                          className="mx-auto"
+                          display="both"
+                        />
+                      </div>
                     </div>
+
+                    {/* Dark gradient overlay for contrast */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+
                     <div className="absolute top-4 right-4">
                       <ExternalLink className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
