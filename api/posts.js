@@ -27,41 +27,63 @@ const authenticate = async (req, res, next) => {
   next();
 };
 
-router.use(authenticate);
-
+// Public GET endpoints, auth required for mutations
 router.get('/', async (_req, res) => {
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .order('published_at', { ascending: false });
 
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+    if (error) {
+      console.error('[api/posts] Supabase error:', error);
+      // If table doesn't exist, return empty array instead of error
+      if (error.code === '42P01' || error.message?.includes('does not exist')) {
+        return res.json([]);
+      }
+      return res.status(500).json({ error: error.message });
+    }
+    res.json(data || []);
+  } catch (err) {
+    console.error('[api/posts] Unexpected error:', err);
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal server error' });
+  }
 });
 
 router.get('/:id', async (req, res) => {
-  const { data, error } = await supabase
-    .from('projects')
-    .select('*')
-    .eq('id', req.params.id)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
 
-  if (error) {
-    const status = error.code === 'PGRST116' ? 404 : 500;
-    return res.status(status).json({ error: error.message });
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+      if (error.code === '42P01' || error.message?.includes('does not exist')) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+      return res.status(500).json({ error: error.message });
+    }
+    res.json(data);
+  } catch (err) {
+    console.error('[api/posts/:id] Unexpected error:', err);
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal server error' });
   }
-  res.json(data);
 });
 
-router.post('/', async (req, res) => {
+// Auth required for mutations
+router.post('/', authenticate, async (req, res) => {
   let payload;
   try {
-    payload = normalizeProjectPayload(req.body);
+    payload = normalizePayload(req.body);
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
   const { data, error } = await supabase
-    .from('projects')
+    .from('blog_posts')
     .insert(payload)
     .select()
     .single();
@@ -70,15 +92,15 @@ router.post('/', async (req, res) => {
   res.status(201).json(data);
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticate, async (req, res) => {
   let payload;
   try {
-    payload = normalizeProjectPayload(req.body, false);
+    payload = normalizePayload(req.body, false);
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
   const { data, error } = await supabase
-    .from('projects')
+    .from('blog_posts')
     .update(payload)
     .eq('id', req.params.id)
     .select()
@@ -91,9 +113,9 @@ router.put('/:id', async (req, res) => {
   res.json(data);
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticate, async (req, res) => {
   const { data, error } = await supabase
-    .from('projects')
+    .from('blog_posts')
     .delete()
     .eq('id', req.params.id)
     .select()
@@ -106,39 +128,33 @@ router.delete('/:id', async (req, res) => {
   res.json(data);
 });
 
-function normalizeProjectPayload(body, requireAll = true) {
+function normalizePayload(body, requireAll = true) {
   const {
     title,
-    description,
+    excerpt,
     category,
+    content,
+    readTime,
     tags,
-    image,
-    mobileImage,
-    gallery,
-    metrics,
-    longDescription,
-    websiteUrl,
-    videoSrc,
+    heroImage,
+    publishedAt,
   } = body;
 
   if (requireAll) {
-    if (!title || !description || !category || !image) {
-      throw new Error('Missing required fields: title, description, category, image');
+    if (!title || !excerpt || !category || !content) {
+      throw new Error('Missing required fields: title, excerpt, category, content');
     }
   }
 
   return {
     title,
-    description,
+    excerpt,
     category,
+    content,
+    read_time: readTime || null,
     tags: Array.isArray(tags) ? tags : (typeof tags === 'string' ? tags.split(',').map((t) => t.trim()).filter(Boolean) : []),
-    image,
-    mobile_image: mobileImage ?? null,
-    gallery: Array.isArray(gallery) ? gallery : (typeof gallery === 'string' ? gallery.split(',').map((t) => t.trim()).filter(Boolean) : []),
-    metrics: metrics ?? null,
-    long_description: longDescription ?? null,
-    website_url: websiteUrl ?? null,
-    video_src: videoSrc ?? null,
+    hero_image: heroImage || null,
+    published_at: publishedAt ? new Date(publishedAt).toISOString() : null,
   };
 }
 

@@ -199,4 +199,10 @@ All colors MUST be HSL.
       box-shadow: 0 0 40px hsl(250 69% 62% / 0.6);
     }
   }
+
+  .sortable-gallery-item {
+    transform: var(--sortable-transform, none);
+    transition: var(--sortable-transition, none);
+    opacity: var(--sortable-opacity, 1);
+  }
 }

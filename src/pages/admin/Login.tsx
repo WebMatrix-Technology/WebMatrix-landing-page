@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 const AdminLogin = () => {
-  const { login } = useAdminAuth();
+  const { login, isEmailAllowed } = useAdminAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,13 +18,15 @@ const AdminLogin = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const { error } = await login(email, password);
-    if (!error) {
-      navigate('/admin');
-    } else {
-      setError(error);
+    if (!isEmailAllowed(email)) {
+      setError('This email is not allowed to access admin.');
+      setLoading(false);
+      return;
     }
+    const { error: err } = await login(email, password);
     setLoading(false);
+    if (err) return setError(err);
+    navigate('/admin');
   };
 
   return (
@@ -33,10 +35,7 @@ const AdminLogin = () => {
         <CardContent className="p-6">
           <h1 className="text-2xl font-display mb-1">Admin Login</h1>
           <p className="text-muted-foreground mb-6">
-            Log in with your admin Supabase email and password.<br />
-            <span className="text-xs text-muted-foreground">
-              If you don&apos;t have an account, an admin needs to create one in Supabase Auth Users.
-            </span>
+            Log in with your admin Supabase email and password. Only approved addresses can log in.
           </p>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
