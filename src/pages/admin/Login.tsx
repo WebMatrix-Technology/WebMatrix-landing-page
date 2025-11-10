@@ -9,16 +9,22 @@ import { Label } from '@/components/ui/label';
 const AdminLogin = () => {
   const { login } = useAdminAuth();
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(password)) {
+    setLoading(true);
+    setError('');
+    const { error } = await login(email, password);
+    if (!error) {
       navigate('/admin');
     } else {
-      setError('Invalid password');
+      setError(error);
     }
+    setLoading(false);
   };
 
   return (
@@ -26,8 +32,25 @@ const AdminLogin = () => {
       <Card className="max-w-md w-full border-border/50">
         <CardContent className="p-6">
           <h1 className="text-2xl font-display mb-1">Admin Login</h1>
-          <p className="text-muted-foreground mb-6">Enter the admin password to continue.</p>
+          <p className="text-muted-foreground mb-6">
+            Log in with your admin Supabase email and password.<br />
+            <span className="text-xs text-muted-foreground">
+              If you don&apos;t have an account, an admin needs to create one in Supabase Auth Users.
+            </span>
+          </p>
           <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@example.com"
+                autoComplete="username"
+                required
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <Input
@@ -35,11 +58,15 @@ const AdminLogin = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password"
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                required
               />
-              {error && <p className="text-destructive text-sm">{error}</p>}
             </div>
-            <Button type="submit" className="w-full">Login</Button>
+            {error && <p className="text-destructive text-sm">{error}</p>}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Logging in…' : 'Login'}
+            </Button>
           </form>
         </CardContent>
       </Card>
