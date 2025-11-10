@@ -11,6 +11,7 @@ interface MediaSliderProps {
 export const MediaSlider: React.FC<MediaSliderProps> = ({ media, className = '', interval = 4000 }) => {
   const [index, setIndex] = useState(0);
   const timerRef = useRef<number | null>(null);
+  const [aspect, setAspect] = useState<string | undefined>(undefined);
 
   const next = () => setIndex((i) => (i + 1) % media.length);
   const prev = () => setIndex((i) => (i - 1 + media.length) % media.length);
@@ -29,13 +30,34 @@ export const MediaSlider: React.FC<MediaSliderProps> = ({ media, className = '',
     return <div className={`aspect-video bg-muted-foreground/5 rounded-2xl ${className}`} />;
   }
 
+  const wrapperStyle: React.CSSProperties = aspect ? { aspectRatio: aspect } : {};
+
   return (
-    <div className={`relative rounded-2xl overflow-hidden ${className}`}>
+    <div className={`relative rounded-2xl overflow-hidden ${className}`} style={wrapperStyle}>
       <div className="w-full h-full bg-black flex items-center justify-center">
         {media[index].type === 'image' ? (
-          <img src={media[index].src} alt={`media-${index}`} className="w-full h-full object-cover" />
+          <img
+            src={media[index].src}
+            alt={`media-${index}`}
+            className="w-full h-full object-contain object-center bg-black"
+            onLoad={(e) => {
+              const img = e.currentTarget as HTMLImageElement;
+              if (img.naturalWidth && img.naturalHeight) setAspect(`${img.naturalWidth} / ${img.naturalHeight}`);
+            }}
+          />
         ) : (
-          <video src={media[index].src} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+          <video
+            src={media[index].src}
+            className="w-full h-full object-contain object-center bg-black"
+            autoPlay
+            loop
+            muted
+            playsInline
+            onLoadedMetadata={(e) => {
+              const v = e.currentTarget as HTMLVideoElement;
+              if (v.videoWidth && v.videoHeight) setAspect(`${v.videoWidth} / ${v.videoHeight}`);
+            }}
+          />
         )}
       </div>
 

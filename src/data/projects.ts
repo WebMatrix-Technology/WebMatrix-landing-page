@@ -21,8 +21,8 @@ export const projects: Project[] = [
     description: 'Modern, responsive portfolio template for photographers and visual artists.',
     category: 'Portfolio',
     tags: ['Next.js', 'React', 'Tailwind CSS', 'Framer Motion', 'Photography'],
-    image: '/work/photogrphy.png',
-    mobileImage: '/work/photography-mobile.png',
+    image: '/work/photography/photogrphy.png',
+    mobileImage: '/work/photography/photography-mobile.png',
     longDescription: 
       'A sophisticated portfolio template designed specifically for photographers and visual artists. Features include a masonry gallery layout, smooth page transitions, image lightbox, and contact form integration. The design emphasizes visual storytelling while maintaining optimal performance.',
     websiteUrl: 'https://photography-template-five.vercel.app',

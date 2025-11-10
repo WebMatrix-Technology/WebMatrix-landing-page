@@ -1,7 +1,8 @@
 // src/pages/WorkDetail.tsx
 
 import { motion } from 'framer-motion';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { projects } from '@/data/projects';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,12 +10,13 @@ import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import NotFound from './NotFound';
-import MediaSlider from '@/components/ui/media-slider';
-import WebGLSlider from '@/components/ui/webgl-slider';
+import { PreviewModes } from '@/components/work/PreviewModes';
 
 const WorkDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const [previewMode, setPreviewMode] = useState<'both' | 'desktop' | 'mobile' | 'video'>(
+    'both'
+  );
   const project = projects.find((p) => p.id === Number(id));
 
   useEffect(() => {
@@ -59,33 +61,22 @@ const WorkDetail = () => {
           <p className="text-xl text-muted-foreground max-w-3xl">{project.description}</p>
         </motion.div>
 
-        {/* Main media slider (images + video) */}
+        {/* Project Preview */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mb-12"
         >
-          {
-            (() => {
-              const images: string[] = [];
-              if (project.image) images.push(project.image);
-              if ((project as any).mobileImage) images.push((project as any).mobileImage);
-
-              // Use WebGL slider for image-to-image transitions when we have at least 2 images
-              if (images.length >= 2) {
-                return <WebGLSlider images={images} className="aspect-video w-full rounded-2xl" />;
-              }
-
-              // Fallback to MediaSlider which supports images + video
-              const media: { type: 'image' | 'video'; src: string }[] = [];
-              if (project.image) media.push({ type: 'image', src: project.image });
-              if ((project as any).mobileImage) media.push({ type: 'image', src: (project as any).mobileImage });
-              if (project.videoSrc) media.push({ type: 'video', src: project.videoSrc });
-
-              return <MediaSlider media={media} className="aspect-video w-full rounded-2xl" />;
-            })()
-          }
+          <PreviewModes
+            desktopImage={project.image}
+            mobileImage={project.mobileImage}
+            videoSrc={project.videoSrc}
+            title={project.title}
+            mode={previewMode}
+            onModeChange={setPreviewMode}
+            className="max-w-6xl mx-auto"
+          />
         </motion.div>
 
         {/* Content Grid */}
