@@ -199,11 +199,11 @@ const ProjectsAdmin = () => {
       category: data.category,
       tags: parseTags(data.tags),
       image: data.image,
-      mobile_image: data.mobileImage || null,
+      mobileImage: data.mobileImage?.trim() || null,
       gallery: (data.gallery || []).filter(Boolean),
-      long_description: data.longDescription || null,
-      website_url: data.websiteUrl || null,
-      video_src: data.videoSrc || null,
+      longDescription: data.longDescription?.trim() || null,
+      websiteUrl: data.websiteUrl?.trim() || null,
+      videoSrc: data.videoSrc?.trim() || null,
       metrics: data.metrics ?? null,
     }),
     []
@@ -221,7 +221,7 @@ const ProjectsAdmin = () => {
       if (!token) throw new Error('Session expired. Please log in again.');
       const payload = buildPayload(form);
       if (editing) {
-        const updated = await apiRequest<ApiProject>(
+        await apiRequest<ApiProject>(
           `/api/projects/${editing.id}`,
           {
             method: 'PUT',
@@ -229,11 +229,10 @@ const ProjectsAdmin = () => {
           },
           token
         );
-        setProjects((prev) => prev.map((p) => (p.id === editing.id ? mapProject(updated) : p)));
         setEditing(null);
         toast.success('Project updated successfully');
       } else {
-        const created = await apiRequest<ApiProject>(
+        await apiRequest<ApiProject>(
           '/api/projects',
           {
             method: 'POST',
@@ -241,10 +240,11 @@ const ProjectsAdmin = () => {
           },
           token
         );
-        setProjects((prev) => [mapProject(created), ...prev]);
         toast.success('Project created successfully');
       }
       resetForm();
+      // Refetch projects to ensure UI shows latest data from database
+      await fetchProjects();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save project.');
     } finally {
@@ -278,8 +278,9 @@ const ProjectsAdmin = () => {
       const token = await getAccessToken();
       if (!token) throw new Error('Session expired. Please log in again.');
       await apiRequest(`/api/projects/${id}`, { method: 'DELETE' }, token);
-      setProjects((prev) => prev.filter((p) => p.id !== id));
       toast.success('Project deleted successfully');
+      // Refetch projects to ensure UI shows latest data from database
+      await fetchProjects();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to delete project.');
     } finally {

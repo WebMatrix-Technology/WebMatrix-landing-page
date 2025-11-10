@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { addLead } from '@/data/contentStore';
+import { apiRequest } from '@/lib/api';
 
 const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,23 +18,33 @@ const Contact = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
     try {
       const form = new FormData(e.currentTarget);
       const name = String(form.get('name') || '').trim();
       const email = String(form.get('email') || '').trim();
       const budget = String(form.get('budget') || '').trim();
       const message = String(form.get('message') || '').trim();
-      addLead({ name, email, budget, timeline, message });
+
+      // Submit to API (no auth token needed for public endpoint)
+      await apiRequest('/api/leads', {
+        method: 'POST',
+        body: JSON.stringify({
+          name,
+          email,
+          budget: budget || undefined,
+          timeline: timeline || undefined,
+          message,
+        }),
+      });
+
       toast.success('Message sent successfully! We\'ll be in touch soon.');
-    } catch {
-      toast.error('Failed to save your message locally, but the form was submitted.');
+      (e.target as HTMLFormElement).reset();
+      setTimeline(undefined);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsSubmitting(false);
-    (e.target as HTMLFormElement).reset();
-    setTimeline(undefined);
   };
 
   return (

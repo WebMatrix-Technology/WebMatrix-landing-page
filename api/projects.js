@@ -27,8 +27,7 @@ const authenticate = async (req, res, next) => {
   next();
 };
 
-router.use(authenticate);
-
+// Public GET endpoints
 router.get('/', async (_req, res) => {
   const { data, error } = await supabase
     .from('projects')
@@ -53,6 +52,9 @@ router.get('/:id', async (req, res) => {
   res.json(data);
 });
 
+// Auth required for mutations
+router.use(authenticate);
+
 router.post('/', async (req, res) => {
   let payload;
   try {
@@ -60,14 +62,23 @@ router.post('/', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
-  const { data, error } = await supabase
-    .from('projects')
-    .insert(payload)
-    .select()
-    .single();
+  
+  try {
+    const { data, error } = await supabase
+      .from('projects')
+      .insert(payload)
+      .select()
+      .single();
 
-  if (error) return res.status(500).json({ error: error.message });
-  res.status(201).json(data);
+    if (error) {
+      console.error('[api/projects] Insert error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    res.status(201).json(data);
+  } catch (err) {
+    console.error('[api/projects] Unexpected error in POST:', err);
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal server error' });
+  }
 });
 
 router.put('/:id', async (req, res) => {
@@ -77,18 +88,40 @@ router.put('/:id', async (req, res) => {
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
-  const { data, error } = await supabase
-    .from('projects')
-    .update(payload)
-    .eq('id', req.params.id)
-    .select()
-    .single();
+  
+  try {
+    // Ensure all fields are explicitly included, even if null, to properly update the database
+    const updatePayload = {
+      title: payload.title,
+      description: payload.description,
+      category: payload.category,
+      tags: payload.tags,
+      image: payload.image,
+      mobile_image: payload.mobile_image,
+      gallery: payload.gallery,
+      metrics: payload.metrics,
+      long_description: payload.long_description,
+      website_url: payload.website_url,
+      video_src: payload.video_src,
+    };
 
-  if (error) {
-    const status = error.code === 'PGRST116' ? 404 : 500;
-    return res.status(status).json({ error: error.message });
+    const { data, error } = await supabase
+      .from('projects')
+      .update(updatePayload)
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[api/projects] Update error:', error);
+      const status = error.code === 'PGRST116' ? 404 : 500;
+      return res.status(status).json({ error: error.message });
+    }
+    res.json(data);
+  } catch (err) {
+    console.error('[api/projects] Unexpected error in PUT:', err);
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal server error' });
   }
-  res.json(data);
 });
 
 router.delete('/:id', async (req, res) => {

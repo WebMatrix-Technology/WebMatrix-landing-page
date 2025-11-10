@@ -3,12 +3,89 @@
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { getProjects } from '@/data/contentStore';
+import { apiRequest } from '@/lib/api';
 import { DevicePreview } from '@/components/ui/device-preview';
+import { useEffect, useState } from 'react';
+
+type ApiProject = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  tags: string[] | null;
+  image: string;
+  mobile_image: string | null;
+  gallery: string[] | null;
+  metrics: { improvement: string; metric: string } | null;
+  long_description: string | null;
+  website_url: string | null;
+  video_src: string | null;
+};
+
+type Project = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  tags: string[];
+  image: string;
+  mobileImage?: string;
+  gallery?: string[];
+  metrics?: { improvement: string; metric: string };
+  longDescription?: string;
+  websiteUrl?: string;
+  videoSrc?: string;
+};
 
 const Work = () => {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        setLoading(true);
+        const data = await apiRequest<ApiProject[]>('/api/projects', { method: 'GET' });
+        const mappedProjects: Project[] = (data || []).map((p) => ({
+          id: p.id,
+          title: p.title,
+          description: p.description,
+          category: p.category,
+          tags: p.tags ?? [],
+          image: p.image,
+          mobileImage: p.mobile_image ?? undefined,
+          gallery: p.gallery ?? undefined,
+          metrics: p.metrics ?? undefined,
+          longDescription: p.long_description ?? undefined,
+          websiteUrl: p.website_url ?? undefined,
+          videoSrc: p.video_src ?? undefined,
+        }));
+        setProjects(mappedProjects);
+      } catch (err) {
+        console.error('Failed to load projects:', err);
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProjects();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-32 pb-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Loading projects...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pt-32 pb-24">
       <div className="container mx-auto px-4">
@@ -25,8 +102,13 @@ const Work = () => {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {getProjects().map((project, index) => ( // Use projects from store
+        {projects.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No projects available at the moment.</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {projects.map((project, index) => (
             <motion.div
               key={project.id}
               initial={{ opacity: 0, y: 30 }}
@@ -83,8 +165,9 @@ const Work = () => {
                 </Card>
               </Link>
             </motion.div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

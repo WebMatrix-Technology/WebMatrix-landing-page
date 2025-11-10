@@ -14,6 +14,22 @@ console.log('[api] SERVICE ROLE present:', !!process.env.SUPABASE_SERVICE_ROLE_K
 const { default: projectsRouter } = await import('./api/projects.js');
 const { default: postsRouter } = await import('./api/posts.js');
 const { default: uploadRouter } = await import('./api/upload.js');
+const { default: leadsRouter } = await import('./api/leads.js');
+
+let dashboardRouter;
+try {
+  const dashboardModule = await import('./api/dashboard.js');
+  dashboardRouter = dashboardModule.default;
+  console.log('[api] Dashboard router loaded successfully');
+} catch (err) {
+  console.error('[api] Failed to load dashboard router:', err);
+  // Create a dummy router that returns an error
+  const { Router } = await import('express');
+  dashboardRouter = Router();
+  dashboardRouter.get('/', (_req, res) => {
+    res.status(500).json({ error: 'Dashboard router failed to load' });
+  });
+}
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -40,11 +56,13 @@ app.use(express.json({ limit: '5mb' }));
 app.use('/api/projects', projectsRouter);
 app.use('/api/posts', postsRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/leads', leadsRouter);
+app.use('/api/dashboard', dashboardRouter);
 
 app.get('/', (_req, res) => {
   res.json({ 
     message: 'API is running',
-    endpoints: ['/api/projects', '/api/posts', '/api/upload']
+    endpoints: ['/api/projects', '/api/posts', '/api/upload', '/api/leads', '/api/dashboard']
   });
 });
 
@@ -59,5 +77,5 @@ app.use((req, res) => {
 
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);
-  console.log(`Available endpoints: /api/projects, /api/posts, /api/upload`);
+  console.log(`Available endpoints: /api/projects, /api/posts, /api/upload, /api/leads, /api/dashboard`);
 });
