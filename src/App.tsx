@@ -23,6 +23,7 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import ProjectsAdmin from "./pages/admin/Projects";
 import PostsAdmin from "./pages/admin/Posts";
+import LeadsAdmin from "./pages/admin/Leads";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +82,7 @@ const AppShell = () => {
             <Route index element={<Dashboard />} />
             <Route path="projects" element={<ProjectsAdmin />} />
             <Route path="posts" element={<PostsAdmin />} />
+            <Route path="leads" element={<LeadsAdmin />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

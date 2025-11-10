@@ -2,7 +2,7 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '@/contexts/AdminAuth';
 import { Button } from '@/components/ui/button';
 import { NavLink } from '@/components/NavLink';
-import { LayoutDashboard, FolderGit2, FileText, LogOut } from 'lucide-react';
+import { LayoutDashboard, FolderGit2, FileText, LogOut, Inbox } from 'lucide-react';
 
 const AdminLayout = () => {
   const { logout } = useAdminAuth();
@@ -41,6 +41,14 @@ const AdminLayout = () => {
           >
             <FileText className="h-4 w-4" />
             Blog Posts
+          </NavLink>
+          <NavLink
+            to="/admin/leads"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
+            activeClassName="bg-muted/30 text-foreground"
+          >
+            <Inbox className="h-4 w-4" />
+            Leads
           </NavLink>
         </nav>
         <Button variant="outline" onClick={handleLogout} className="mt-6 w-full">

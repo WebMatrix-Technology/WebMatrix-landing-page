@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Mail, MapPin, Phone } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { addLead } from '@/data/contentStore';
 
 const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [timeline, setTimeline] = useState<string | undefined>(undefined);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -19,9 +21,20 @@ const Contact = () => {
     // Simulate form submission
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    toast.success('Message sent successfully! We\'ll be in touch soon.');
+    try {
+      const form = new FormData(e.currentTarget);
+      const name = String(form.get('name') || '').trim();
+      const email = String(form.get('email') || '').trim();
+      const budget = String(form.get('budget') || '').trim();
+      const message = String(form.get('message') || '').trim();
+      addLead({ name, email, budget, timeline, message });
+      toast.success('Message sent successfully! We\'ll be in touch soon.');
+    } catch {
+      toast.error('Failed to save your message locally, but the form was submitted.');
+    }
     setIsSubmitting(false);
     (e.target as HTMLFormElement).reset();
+    setTimeline(undefined);
   };
 
   return (
@@ -108,22 +121,22 @@ const Contact = () => {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="name">Name *</Label>
-                      <Input id="name" placeholder="John Doe" required />
+                      <Input id="name" name="name" placeholder="John Doe" required />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email *</Label>
-                      <Input id="email" type="email" placeholder="john@example.com" required />
+                      <Input id="email" name="email" type="email" placeholder="john@example.com" required />
                     </div>
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="budget">Budget</Label>
-                      <Input id="budget" placeholder="Enter budget (e.g., ₹50,000)" />
+                      <Input id="budget" name="budget" placeholder="Enter budget (e.g., ₹50,000)" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="timeline">Timeline</Label>
-                      <Select>
+                      <Select value={timeline} onValueChange={setTimeline}>
                         <SelectTrigger id="timeline">
                           <SelectValue placeholder="Select timeline" />
                         </SelectTrigger>
@@ -140,7 +153,8 @@ const Contact = () => {
                   <div className="space-y-2">
                     <Label htmlFor="message">Project Details *</Label>
                     <Textarea 
-                      id="message" 
+                      id="message"
+                      name="message"
                       placeholder="Tell us about your project..." 
                       className="min-h-[150px]" 
                       required 

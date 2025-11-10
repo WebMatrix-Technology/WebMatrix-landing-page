@@ -13,6 +13,17 @@ export type BlogPost = {
 
 const LS_PROJECTS = 'content_projects';
 const LS_POSTS = 'content_posts';
+const LS_LEADS = 'content_leads';
+
+export type Lead = {
+  id: number;
+  name: string;
+  email: string;
+  budget?: string;
+  timeline?: string;
+  message: string;
+  createdAt: string; // ISO
+};
 
 function readJSON<T>(key: string, fallback: T): T {
   try {
@@ -60,5 +71,22 @@ export function getPosts(): BlogPost[] {
 
 export function savePosts(next: BlogPost[]) {
   writeJSON<BlogPost[]>(LS_POSTS, next);
+}
+
+export function getLeads(): Lead[] {
+  return readJSON<Lead[]>(LS_LEADS, []);
+}
+
+export function saveLeads(next: Lead[]) {
+  writeJSON<Lead[]>(LS_LEADS, next);
+}
+
+export function addLead(lead: Omit<Lead, 'id' | 'createdAt'> & Partial<Pick<Lead, 'createdAt'>>) {
+  const all = getLeads();
+  const id = Date.now();
+  const createdAt = lead.createdAt || new Date().toISOString();
+  const next = [{ id, createdAt, ...lead } as Lead, ...all];
+  saveLeads(next);
+  return id;
 }
 
