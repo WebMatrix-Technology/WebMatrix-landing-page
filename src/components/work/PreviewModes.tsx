@@ -11,6 +11,7 @@ interface PreviewModesProps {
   mode: 'both' | 'desktop' | 'mobile' | 'video';
   onModeChange: (mode: 'both' | 'desktop' | 'mobile' | 'video') => void;
   className?: string;
+  showDevicePreview?: boolean; // optionally hide device preview area (keep controls)
 }
 
 export const PreviewModes = ({
@@ -20,7 +21,8 @@ export const PreviewModes = ({
   title,
   mode,
   onModeChange,
-  className
+  className,
+  showDevicePreview = true,
 }: PreviewModesProps) => {
   return (
     <div className={cn("space-y-4", className)}>
@@ -84,7 +86,7 @@ export const PreviewModes = ({
       {/* Preview area */}
       <div className="relative w-full">
         {/* Device Preview */}
-        {mode !== 'video' && (
+        {mode !== 'video' && showDevicePreview && (
           <div className={cn("transition-all duration-500", "opacity-100")}>
             <DevicePreview
               desktopImage={desktopImage}

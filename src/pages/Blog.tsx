@@ -3,65 +3,16 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const articles = [
-  {
-    id: 1,
-    title: 'Building Performant 3D Web Experiences with Three.js',
-    excerpt: 'Learn best practices for creating smooth, optimized 3D web applications that run at 60fps.',
-    category: 'Tutorial',
-    date: '2024-01-15',
-    readTime: '8 min',
-    tags: ['Three.js', 'WebGL', 'Performance'],
-  },
-  {
-    id: 2,
-    title: 'The Future of Web Animations: Framer Motion vs GSAP',
-    excerpt: 'A comprehensive comparison of two leading animation libraries for modern web development.',
-    category: 'Comparison',
-    date: '2024-01-10',
-    readTime: '6 min',
-    tags: ['Framer Motion', 'GSAP', 'Animations'],
-  },
-  {
-    id: 3,
-    title: 'Achieving 100 Lighthouse Score: A Complete Guide',
-    excerpt: 'Step-by-step strategies for optimizing your website to achieve perfect Lighthouse scores.',
-    category: 'Guide',
-    date: '2024-01-05',
-    readTime: '10 min',
-    tags: ['Performance', 'SEO', 'Best Practices'],
-  },
-  {
-    id: 4,
-    title: 'Implementing Micro-interactions That Delight Users',
-    excerpt: 'How subtle animations and transitions can significantly improve user experience.',
-    category: 'Design',
-    date: '2023-12-28',
-    readTime: '5 min',
-    tags: ['UX', 'Design', 'Interactions'],
-  },
-  {
-    id: 5,
-    title: 'Modern CSS: Grid, Flexbox, and Container Queries',
-    excerpt: 'Master modern CSS layout techniques for building responsive, maintainable interfaces.',
-    category: 'Tutorial',
-    date: '2023-12-20',
-    readTime: '7 min',
-    tags: ['CSS', 'Layout', 'Responsive'],
-  },
-  {
-    id: 6,
-    title: 'WebGL Shaders: From Basics to Advanced Techniques',
-    excerpt: 'Dive deep into shader programming and create stunning visual effects for the web.',
-    category: 'Advanced',
-    date: '2023-12-15',
-    readTime: '12 min',
-    tags: ['WebGL', 'Shaders', 'Graphics'],
-  },
-];
+import { useEffect, useState } from 'react';
+import { getPosts, BlogPost } from '@/data/contentStore';
 
 const Blog = () => {
+  const [articles, setArticles] = useState<BlogPost[]>([]);
+
+  useEffect(() => {
+    setArticles(getPosts());
+  }, []);
+
   return (
     <div className="min-h-screen pt-32 pb-24">
       <div className="container mx-auto px-4">

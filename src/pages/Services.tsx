@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 const packages = [
   {
     name: 'Starter',
-    price: '$5,000',
+    price: '₹5,000',
     description: 'Perfect for small businesses and startups',
     features: [
       'Up to 5 pages',
@@ -20,7 +20,7 @@ const packages = [
   },
   {
     name: 'Professional',
-    price: '$15,000',
+    price: '₹15,000',
     description: 'For growing businesses that need more',
     features: [
       'Up to 15 pages',

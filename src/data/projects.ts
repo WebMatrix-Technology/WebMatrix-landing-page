@@ -8,6 +8,7 @@ export interface Project {
   tags: string[];
   image: string;
   mobileImage?: string; // Mobile screenshot
+  gallery?: string[]; // Multiple images for slider
   metrics?: { improvement: string; metric: string };
   longDescription?: string; // For the detail page
   websiteUrl?: string; // For external links

@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { projects } from '@/data/projects';
+import { getProjects } from '@/data/contentStore';
 import { DevicePreview } from '@/components/ui/device-preview';
 
 const Work = () => {
@@ -26,7 +26,7 @@ const Work = () => {
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {projects.map((project, index) => ( // Use the imported projects
+          {getProjects().map((project, index) => ( // Use projects from store
             <motion.div
               key={project.id}
               initial={{ opacity: 0, y: 30 }}
@@ -34,34 +34,51 @@ const Work = () => {
               transition={{ delay: index * 0.1 }}
             >
               <Link to={`/work/${project.id}`}>
-                <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all hover:shadow-glow cursor-pointer h-full">
-                  <div className="relative aspect-[4/3] md:aspect-[16/9] overflow-hidden">
-                    <DevicePreview
-                      desktopImage={project.image}
-                      mobileImage={project.mobileImage}
-                      title={project.title}
-                      className="transform transition-transform duration-500 group-hover:scale-105"
-                    />
-                    
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="absolute top-4 right-4 z-10">
-                      <ExternalLink className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity text-white" />
+                <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all hover:shadow-glow h-full">
+                  <div className="aspect-video relative overflow-hidden rounded-t-lg bg-zinc-900">
+                    {/* Device previews */}
+                    <div className="absolute inset-0 p-6 flex items-center justify-center">
+                      <div className="w-full">
+                        <DevicePreview
+                          desktopImage={project.image}
+                          mobileImage={project.mobileImage}
+                          title={project.title}
+                          className="mx-auto"
+                          display="both"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Dark gradient overlay for contrast */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+
+                    <div className="absolute top-4 right-4">
+                      <ExternalLink className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                   </div>
                   <CardContent className="p-6">
-                    <Badge className="mb-3" variant="secondary">{project.category}</Badge>
                     <h3 className="text-xl font-display font-semibold mb-2 group-hover:text-gradient transition-colors">
                       {project.title}
                     </h3>
                     <p className="text-muted-foreground mb-4">{project.description}</p>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mb-4">
                       {project.tags.map((tag) => (
-                        <Badge key={tag} variant="outline">
+                        <Badge key={tag} variant="secondary">
                           {tag}
                         </Badge>
                       ))}
                     </div>
+                    {project.metrics && (
+                      <div className="flex items-center justify-between pt-4 border-t border-border">
+                        <div>
+                          <div className="text-2xl font-bold text-primary">{project.metrics.improvement}</div>
+                          <div className="text-xs text-muted-foreground">{project.metrics.metric}</div>
+                        </div>
+                        <div className="text-primary text-sm font-medium">
+                          View Case Study →
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </Link>

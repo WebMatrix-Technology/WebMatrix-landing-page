@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { projects } from '@/data/projects';
+import { getProjects } from '@/data/contentStore';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
@@ -11,13 +11,14 @@ import { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import NotFound from './NotFound';
 import { PreviewModes } from '@/components/work/PreviewModes';
+import { MediaSlider } from '@/components/ui/media-slider';
 
 const WorkDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [previewMode, setPreviewMode] = useState<'both' | 'desktop' | 'mobile' | 'video'>(
     'both'
   );
-  const project = projects.find((p) => p.id === Number(id));
+  const project = getProjects().find((p) => p.id === Number(id));
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -61,7 +62,7 @@ const WorkDetail = () => {
           <p className="text-xl text-muted-foreground max-w-3xl">{project.description}</p>
         </motion.div>
 
-        {/* Project Preview */}
+        {/* Project Preview - keep Desktop/Mobile/Both/Video controls */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -76,9 +77,32 @@ const WorkDetail = () => {
             mode={previewMode}
             onModeChange={setPreviewMode}
             className="max-w-6xl mx-auto"
+            showDevicePreview={previewMode === 'both'}
           />
         </motion.div>
 
+        {/* Gallery Slider reacting to selected mode */}
+        {project.gallery && project.gallery.length > 0 && (previewMode === 'desktop' || previewMode === 'mobile') && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            className="mb-12"
+          >
+            <div className={previewMode === 'mobile' ? 'max-w-[420px] mx-auto' : 'max-w-6xl mx-auto'}>
+              <MediaSlider
+                media={project.gallery
+                  .filter(src => {
+                    const s = src.toLowerCase();
+                    const isMobileName = s.includes('mobile') || s.includes('phone') || s.endsWith('-m.png') || s.endsWith('-m.jpg') || s.endsWith('-mobile.png') || s.endsWith('-mobile.jpg');
+                    return previewMode === 'mobile' ? isMobileName : !isMobileName;
+                  })
+                  .map(src => ({ type: 'image' as const, src }))}
+                interval={3000}
+              />
+            </div>
+          </motion.div>
+        )}
         {/* Content Grid */}
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}

@@ -5,10 +5,10 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { projects } from '@/data/projects'; // Import data
+import { getProjects } from '@/data/contentStore'; // Import data from store
 import { DevicePreview } from '@/components/ui/device-preview';
 
-const featuredProjects = projects.slice(0, 3); // Get first 3 projects for the homepage
+const featuredProjects = getProjects().slice(0, 3); // Get first 3 projects for the homepage
 
 export const FeaturedWork = () => {
   return (
@@ -46,7 +46,6 @@ export const FeaturedWork = () => {
               <Link to={`/work/${project.id}`}>
                 <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all hover:shadow-glow h-full">
                   <div className="aspect-video relative overflow-hidden rounded-t-lg bg-zinc-900">
-                    {/* Use DevicePreview to show desktop + mobile preview */}
                     <div className="absolute inset-0 p-6 flex items-center justify-center">
                       <div className="w-full">
                         <DevicePreview

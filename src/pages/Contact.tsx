@@ -118,18 +118,8 @@ const Contact = () => {
 
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="budget">Budget Range</Label>
-                      <Select>
-                        <SelectTrigger id="budget">
-                          <SelectValue placeholder="Select budget" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="5-10k">$5,000 - $10,000</SelectItem>
-                          <SelectItem value="10-25k">$10,000 - $25,000</SelectItem>
-                          <SelectItem value="25-50k">$25,000 - $50,000</SelectItem>
-                          <SelectItem value="50k+">$50,000+</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label htmlFor="budget">Budget</Label>
+                      <Input id="budget" placeholder="Enter budget (e.g., ₹50,000)" />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="timeline">Timeline</Label>
