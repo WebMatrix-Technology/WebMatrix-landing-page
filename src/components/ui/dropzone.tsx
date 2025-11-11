@@ -52,7 +52,8 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
         const formData = new FormData();
         formData.append('image', file);
 
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload`, {
+        const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:4000');
+        const response = await fetch(`${apiBase}/api/upload`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
