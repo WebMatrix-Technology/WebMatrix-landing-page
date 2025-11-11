@@ -4,8 +4,10 @@ import { cn } from '@/lib/utils';
 type DropzoneProps = {
   label?: string;
   className?: string;
-  onImageSelected: (params: { file: File; dataUrl: string }) => void;
+  onImageSelected: (params: { file: File; dataUrl: string; cloudinaryUrl?: string }) => void;
   previewUrl?: string;
+  uploadToCloudinary?: boolean;
+  getAccessToken?: () => Promise<string | null>;
 };
 
 export const ImageDropzone: React.FC<DropzoneProps> = ({
@@ -13,26 +15,79 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
   className,
   onImageSelected,
   previewUrl,
+  uploadToCloudinary = true,
+  getAccessToken,
 }) => {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = React.useState(false);
   const [preview, setPreview] = React.useState<string | undefined>(previewUrl);
+  const [uploading, setUploading] = React.useState(false);
 
   React.useEffect(() => {
     setPreview(previewUrl);
   }, [previewUrl]);
 
-  const handleFiles = (files: FileList | null) => {
+  const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const file = files[0];
     if (!file.type.startsWith('image/')) return;
+    
+    // Show preview immediately
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = String(reader.result || '');
       setPreview(dataUrl);
-      onImageSelected({ file, dataUrl });
     };
     reader.readAsDataURL(file);
+
+    // Upload to Cloudinary if enabled and token provider available
+    if (uploadToCloudinary && getAccessToken) {
+      try {
+        setUploading(true);
+        const token = await getAccessToken();
+        if (!token) {
+          throw new Error('No access token available');
+        }
+        
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Upload failed');
+        }
+
+        const result = await response.json();
+        setPreview(result.url);
+        onImageSelected({ file, dataUrl: result.url, cloudinaryUrl: result.url });
+      } catch (error) {
+        console.error('Cloudinary upload failed:', error);
+        // Fallback to base64
+        const fallbackReader = new FileReader();
+        fallbackReader.onload = () => {
+          const dataUrl = String(fallbackReader.result || '');
+          onImageSelected({ file, dataUrl });
+        };
+        fallbackReader.readAsDataURL(file);
+      } finally {
+        setUploading(false);
+      }
+    } else {
+      // Just use base64
+      reader.onload = () => {
+        const dataUrl = String(reader.result || '');
+        onImageSelected({ file, dataUrl });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -80,7 +135,9 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
           )}
         </div>
         <div className="text-sm">
-          <div className="font-medium">Upload image</div>
+          <div className="font-medium">
+            {uploading ? 'Uploading...' : 'Upload image'}
+          </div>
           <div className="text-muted-foreground">{label}</div>
         </div>
       </div>

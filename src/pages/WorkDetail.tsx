@@ -1,28 +1,98 @@
 // src/pages/WorkDetail.tsx
 
 import { motion } from 'framer-motion';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getProjects } from '@/data/contentStore';
+import { apiRequest } from '@/lib/api';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
-import { useEffect } from 'react';
+import { ArrowLeft, ExternalLink, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import NotFound from './NotFound';
 import { PreviewModes } from '@/components/work/PreviewModes';
 import { MediaSlider } from '@/components/ui/media-slider';
+
+type ApiProject = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  tags: string[] | null;
+  image: string;
+  mobile_image: string | null;
+  gallery: string[] | null;
+  metrics: { improvement: string; metric: string } | null;
+  long_description: string | null;
+  website_url: string | null;
+  video_src: string | null;
+};
+
+type Project = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  tags: string[];
+  image: string;
+  mobileImage?: string;
+  gallery?: string[];
+  metrics?: { improvement: string; metric: string };
+  longDescription?: string;
+  websiteUrl?: string;
+  videoSrc?: string;
+};
 
 const WorkDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [previewMode, setPreviewMode] = useState<'both' | 'desktop' | 'mobile' | 'video'>(
     'both'
   );
-  const project = getProjects().find((p) => p.id === Number(id));
+  const [project, setProject] = useState<Project | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
+    const loadProject = async () => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const data = await apiRequest<ApiProject>(`/api/projects/${id}`, { method: 'GET' });
+        const mappedProject: Project = {
+          id: data.id,
+          title: data.title,
+          description: data.description,
+          category: data.category,
+          tags: data.tags ?? [],
+          image: data.image,
+          mobileImage: data.mobile_image ?? undefined,
+          gallery: data.gallery ?? undefined,
+          metrics: data.metrics ?? undefined,
+          longDescription: data.long_description ?? undefined,
+          websiteUrl: data.website_url ?? undefined,
+          videoSrc: data.video_src ?? undefined,
+        };
+        setProject(mappedProject);
+      } catch (err) {
+        console.error('Failed to load project:', err);
+        setProject(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProject();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-32 pb-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Loading project...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!project) {
     return <NotFound />;

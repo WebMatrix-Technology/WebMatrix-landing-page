@@ -5,12 +5,71 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getProjects } from '@/data/contentStore'; // Import data from store
+import { apiRequest } from '@/lib/api';
 import { DevicePreview } from '@/components/ui/device-preview';
+import { useEffect, useState } from 'react';
 
-const featuredProjects = getProjects().slice(0, 3); // Get first 3 projects for the homepage
+type ApiProject = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  tags: string[] | null;
+  image: string;
+  mobile_image: string | null;
+  gallery: string[] | null;
+  metrics: { improvement: string; metric: string } | null;
+  long_description: string | null;
+  website_url: string | null;
+  video_src: string | null;
+};
+
+type Project = {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  tags: string[];
+  image: string;
+  mobileImage?: string;
+  gallery?: string[];
+  metrics?: { improvement: string; metric: string };
+  longDescription?: string;
+  websiteUrl?: string;
+  videoSrc?: string;
+};
 
 export const FeaturedWork = () => {
+  const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    const loadProjects = async () => {
+      try {
+        const data = await apiRequest<ApiProject[]>('/api/projects', { method: 'GET' });
+        const mappedProjects: Project[] = (data || [])
+          .slice(0, 3)
+          .map((p) => ({
+            id: p.id,
+            title: p.title,
+            description: p.description,
+            category: p.category,
+            tags: p.tags ?? [],
+            image: p.image,
+            mobileImage: p.mobile_image ?? undefined,
+            gallery: p.gallery ?? undefined,
+            metrics: p.metrics ?? undefined,
+            longDescription: p.long_description ?? undefined,
+            websiteUrl: p.website_url ?? undefined,
+            videoSrc: p.video_src ?? undefined,
+          }));
+        setFeaturedProjects(mappedProjects);
+      } catch (err) {
+        console.error('Failed to load featured projects:', err);
+        setFeaturedProjects([]);
+      }
+    };
+    loadProjects();
+  }, []);
   return (
     <section className="py-24 bg-secondary/30">
       <div className="container mx-auto px-4">

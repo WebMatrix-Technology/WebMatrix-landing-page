@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
+import './scene3d.css';
 
 export const Scene3D = () => {
   const { theme } = useTheme();
@@ -157,8 +158,7 @@ export const Scene3D = () => {
     <div className="w-full h-full bg-white dark:bg-black transition-colors duration-300">
       <canvas
         ref={canvasRef}
-        className="w-full h-full"
-        style={{ background: 'transparent' }}
+        className="w-full h-full scene3d-canvas"
       />
     </div>
   );
