@@ -22,6 +22,8 @@ type ApiProject = {
   long_description: string | null;
   website_url: string | null;
   video_src: string | null;
+  is_featured: boolean | null;
+  featured_order: number | null;
 };
 
 type Project = {
@@ -37,6 +39,8 @@ type Project = {
   longDescription?: string;
   websiteUrl?: string;
   videoSrc?: string;
+  isFeatured: boolean;
+  featuredOrder: number | null;
 };
 
 const Work = () => {
@@ -61,6 +65,8 @@ const Work = () => {
           longDescription: p.long_description ?? undefined,
           websiteUrl: p.website_url ?? undefined,
           videoSrc: p.video_src ?? undefined,
+          isFeatured: Boolean(p.is_featured),
+          featuredOrder: p.featured_order,
         }));
         setProjects(mappedProjects);
       } catch (err) {

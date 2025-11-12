@@ -22,6 +22,8 @@ type ApiProject = {
   long_description: string | null;
   website_url: string | null;
   video_src: string | null;
+  is_featured: boolean | null;
+  featured_order: number | null;
 };
 
 type Project = {
@@ -37,6 +39,8 @@ type Project = {
   longDescription?: string;
   websiteUrl?: string;
   videoSrc?: string;
+  isFeatured: boolean;
+  featuredOrder: number | null;
 };
 
 export const FeaturedWork = () => {
@@ -46,9 +50,7 @@ export const FeaturedWork = () => {
     const loadProjects = async () => {
       try {
         const data = await apiRequest<ApiProject[]>('/api/projects', { method: 'GET' });
-        const mappedProjects: Project[] = (data || [])
-          .slice(0, 3)
-          .map((p) => ({
+        const allProjects: Project[] = (data || []).map((p) => ({
             id: p.id,
             title: p.title,
             description: p.description,
@@ -61,8 +63,25 @@ export const FeaturedWork = () => {
             longDescription: p.long_description ?? undefined,
             websiteUrl: p.website_url ?? undefined,
             videoSrc: p.video_src ?? undefined,
+            isFeatured: Boolean(p.is_featured),
+            featuredOrder: p.featured_order,
           }));
-        setFeaturedProjects(mappedProjects);
+
+        const featured = allProjects
+          .filter((project) => project.isFeatured)
+          .sort((a, b) => {
+            const orderA = a.featuredOrder ?? Number.MAX_SAFE_INTEGER;
+            const orderB = b.featuredOrder ?? Number.MAX_SAFE_INTEGER;
+            if (orderA === orderB) {
+              return a.title.localeCompare(b.title);
+            }
+            return orderA - orderB;
+          })
+          .slice(0, 3);
+
+        setFeaturedProjects(
+          featured.length > 0 ? featured : allProjects.slice(0, 3)
+        );
       } catch (err) {
         console.error('Failed to load featured projects:', err);
         setFeaturedProjects([]);

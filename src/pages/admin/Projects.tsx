@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ImageDropzone } from '@/components/ui/dropzone';
+import { Switch } from '@/components/ui/switch';
 import { apiRequest } from '@/lib/api';
 import { useAdminAuth } from '@/contexts/AdminAuth';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
@@ -27,6 +28,8 @@ type ApiProject = {
   long_description: string | null;
   website_url: string | null;
   video_src: string | null;
+  is_featured: boolean | null;
+  featured_order: number | null;
 };
 
 type AdminProject = {
@@ -42,6 +45,8 @@ type AdminProject = {
   longDescription?: string;
   websiteUrl?: string;
   videoSrc?: string;
+  isFeatured: boolean;
+  featuredOrder: number | null;
 };
 
 const emptyForm = {
@@ -56,6 +61,8 @@ const emptyForm = {
   websiteUrl: '',
   videoSrc: '',
   metrics: undefined as { improvement: string; metric: string } | undefined,
+  isFeatured: false,
+  featuredOrder: '',
 };
 
 const SUGGESTED_TAGS = ['Next.js', 'React', 'TypeScript', 'Tailwind CSS', 'Framer Motion', 'WebGL', 'Three.js', 'E-commerce', 'SaaS', 'Portfolio', 'FinTech', 'Security'];
@@ -159,6 +166,8 @@ const ProjectsAdmin = () => {
     longDescription: p.long_description ?? '',
     websiteUrl: p.website_url ?? '',
     videoSrc: p.video_src ?? '',
+  isFeatured: Boolean(p.is_featured),
+  featuredOrder: p.featured_order,
   }), []);
 
   const fetchProjects = useCallback(async () => {
@@ -192,8 +201,13 @@ const ProjectsAdmin = () => {
   const parseTags = (value: string) =>
     value.split(',').map((tag) => tag.trim()).filter(Boolean);
 
-  const buildPayload = useCallback(
-    (data: typeof emptyForm) => ({
+  const buildPayload = useCallback((data: typeof emptyForm) => {
+    const trimmedOrder =
+      typeof data.featuredOrder === 'string' ? data.featuredOrder.trim() : '';
+    const parsedOrder =
+      trimmedOrder === '' ? null : Number.isNaN(Number(trimmedOrder)) ? null : Number(trimmedOrder);
+
+    return {
       title: data.title,
       description: data.description,
       category: data.category,
@@ -205,9 +219,10 @@ const ProjectsAdmin = () => {
       websiteUrl: data.websiteUrl?.trim() || null,
       videoSrc: data.videoSrc?.trim() || null,
       metrics: data.metrics ?? null,
-    }),
-    []
-  );
+      isFeatured: data.isFeatured,
+      featuredOrder: data.isFeatured ? parsedOrder : null,
+    };
+  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -266,6 +281,8 @@ const ProjectsAdmin = () => {
       websiteUrl: project.websiteUrl || '',
       videoSrc: project.videoSrc || '',
       metrics: project.metrics,
+      isFeatured: project.isFeatured,
+      featuredOrder: project.featuredOrder != null ? String(project.featuredOrder) : '',
     });
     setShowAdvanced(!!(project.metrics || project.websiteUrl || project.videoSrc || project.longDescription));
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -413,6 +430,43 @@ const ProjectsAdmin = () => {
                         );
                       })}
                     </div>
+                <div className="md:col-span-2 grid md:grid-cols-[auto,200px] gap-4 rounded-lg border border-border/50 p-4">
+                  <div>
+                    <Label className="text-base">Show in Latest Work</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Toggle on to feature this project on the home page. Use the optional order to control display
+                      priority (lower numbers appear first).
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-3">
+                    <Switch
+                      checked={form.isFeatured}
+                      onCheckedChange={(checked) =>
+                        setForm((f) => ({
+                          ...f,
+                          isFeatured: checked,
+                          featuredOrder: checked ? f.featuredOrder : '',
+                        }))
+                      }
+                    />
+                    {form.isFeatured && (
+                      <div className="w-full">
+                        <Label htmlFor="featuredOrder" className="text-xs text-muted-foreground uppercase tracking-wide">
+                          Display Order
+                        </Label>
+                        <Input
+                          id="featuredOrder"
+                          type="number"
+                          min={1}
+                          max={12}
+                          value={form.featuredOrder}
+                          onChange={(e) => setForm((f) => ({ ...f, featuredOrder: e.target.value }))}
+                          placeholder="1"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
                   </div>
                 </div>
               </div>
@@ -711,7 +765,17 @@ const ProjectsAdmin = () => {
                   )}
                 </div>
                 <div className="p-4">
-                  <div className="font-semibold text-lg mb-1">{p.title}</div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="font-semibold text-lg">{p.title}</div>
+                    {p.isFeatured && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                        Latest Work
+                        {p.featuredOrder != null && p.featuredOrder !== undefined && (
+                          <span className="text-primary/70">#{p.featuredOrder}</span>
+                        )}
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-muted-foreground mb-2">{p.category}</div>
                   <div className="text-sm text-muted-foreground line-clamp-2">{p.description}</div>
                   {p.tags && p.tags.length > 0 && (

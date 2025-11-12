@@ -13,6 +13,8 @@ export interface Project {
   longDescription?: string; // For the detail page
   websiteUrl?: string; // For external links
   videoSrc?: string; // For the video embed
+  isFeatured?: boolean;
+  featuredOrder?: number;
 }
 
 export const projects: Project[] = [

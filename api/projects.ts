@@ -109,6 +109,8 @@ router.put('/:id', async (req: Request, res: Response) => {
       long_description: payload.long_description,
       website_url: payload.website_url,
       video_src: payload.video_src,
+      is_featured: payload.is_featured,
+      featured_order: payload.featured_order,
     };
 
     const client = requireSupabase(res);
@@ -162,6 +164,8 @@ type ProjectRecord = {
   long_description: string | null;
   website_url: string | null;
   video_src: string | null;
+  is_featured: boolean;
+  featured_order: number | null;
 };
 
 type ProjectInput = {
@@ -176,6 +180,8 @@ type ProjectInput = {
   longDescription?: string | null;
   websiteUrl?: string | null;
   videoSrc?: string | null;
+  isFeatured?: boolean;
+  featuredOrder?: number | string | null;
 };
 
 function normalizeProjectPayload(body: ProjectInput, requireAll = true): ProjectRecord {
@@ -191,6 +197,8 @@ function normalizeProjectPayload(body: ProjectInput, requireAll = true): Project
     longDescription,
     websiteUrl,
     videoSrc,
+    isFeatured,
+    featuredOrder,
   } = body;
 
   if (requireAll) {
@@ -223,6 +231,19 @@ function normalizeProjectPayload(body: ProjectInput, requireAll = true): Project
     long_description: longDescription ?? null,
     website_url: websiteUrl ?? null,
     video_src: videoSrc ?? null,
+    is_featured: Boolean(isFeatured),
+    featured_order: (() => {
+      if (typeof featuredOrder === 'number') {
+        return Number.isNaN(featuredOrder) ? null : featuredOrder;
+      }
+      if (typeof featuredOrder === 'string') {
+        const trimmed = featuredOrder.trim();
+        if (trimmed === '') return null;
+        const parsed = Number(trimmed);
+        return Number.isNaN(parsed) ? null : parsed;
+      }
+      return null;
+    })(),
   };
 }
 
