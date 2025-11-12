@@ -104,6 +104,8 @@ export default async function handler(req, res) {
     req.path = path;
     req.originalUrl = req.originalUrl || path;
     
+    console.log('[api] dispatching to express app with path', path);
+
     // Call Express app
     return new Promise((resolve, reject) => {
       app(req, res, (err) => {
