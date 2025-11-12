@@ -1,44 +1,38 @@
 import { Router } from 'express';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !serviceKey) {
-  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables.');
-  process.exit(1);
-}
-
-const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
+import { ensureSupabase, authenticate as authenticateRequest } from './_lib/supabase.js';
 
 const router = Router();
 
 // Authentication middleware for admin endpoints
 const authenticate = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  const result = await authenticateRequest(req);
+  if (result.error) {
+    return res.status(result.status).json({ error: result.error });
   }
-  const token = authHeader.replace('Bearer ', '').trim();
-  const { data, error } = await supabase.auth.getUser(token);
-  if (error || !data?.user) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  req.user = data.user;
+  req.user = result.user;
   next();
+};
+
+const requireSupabase = (res) => {
+  const client = ensureSupabase(res);
+  if (!client) {
+    console.error('[api/leads] Supabase client unavailable.');
+  }
+  return client;
 };
 
 // Public endpoint - anyone can submit a lead
 router.post('/', async (req, res) => {
+  const client = requireSupabase(res);
+  if (!client) return;
   let payload;
   try {
     payload = normalizeLeadPayload(req.body);
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
-
   try {
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('leads')
       .insert(payload)
       .select()
@@ -66,8 +60,10 @@ router.post('/', async (req, res) => {
 
 // Admin endpoints - require authentication
 router.get('/', authenticate, async (_req, res) => {
+  const client = requireSupabase(res);
+  if (!client) return;
   try {
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('leads')
       .select('*')
       .order('created_at', { ascending: false });
@@ -86,8 +82,10 @@ router.get('/', authenticate, async (_req, res) => {
 });
 
 router.get('/:id', authenticate, async (req, res) => {
+  const client = requireSupabase(res);
+  if (!client) return;
   try {
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('leads')
       .select('*')
       .eq('id', req.params.id)
@@ -110,8 +108,10 @@ router.get('/:id', authenticate, async (req, res) => {
 });
 
 router.delete('/:id', authenticate, async (req, res) => {
+  const client = requireSupabase(res);
+  if (!client) return;
   try {
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('leads')
       .delete()
       .eq('id', req.params.id)

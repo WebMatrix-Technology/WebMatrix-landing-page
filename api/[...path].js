@@ -10,6 +10,22 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const envPath = join(__dirname, '..', '.env');
 loadEnv({ path: envPath });
 
+const requiredEnvKeys = [
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'VITE_SUPABASE_URL',
+  'VITE_SUPABASE_ANON_KEY',
+];
+
+try {
+  const envStatus = Object.fromEntries(
+    requiredEnvKeys.map((key) => [key, process.env[key] ? 'set' : 'missing'])
+  );
+  console.log('[api] env status', envStatus);
+} catch (envLogError) {
+  console.warn('[api] failed to log env status', envLogError);
+}
+
 // Import routers
 import projectsRouter from './projects.js';
 import postsRouter from './posts.js';
