@@ -6,6 +6,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navLinks = [
+  { name: 'Home', href: '/' },
   { name: 'Work', href: '/work' },
   { name: 'Services', href: '/services' },
   { name: 'Process', href: '/process' },

@@ -60,23 +60,55 @@ app.use((req, res) => {
 });
 
 // Vercel serverless function handler
+// For catch-all routes, Vercel passes path segments as req.query.path (array)
 export default async function handler(req, res) {
-  // Vercel passes the path in req.url, which will be like /api/projects
-  // We need to strip /api prefix for Express routing
-  const originalUrl = req.url;
-  
-  if (req.url.startsWith('/api')) {
-    req.url = req.url.replace(/^\/api/, '') || '/';
-  }
-  
-  // Call Express app
-  return new Promise((resolve) => {
-    app(req, res, () => {
-      if (!res.headersSent) {
-        res.status(404).json({ error: 'Not found', path: originalUrl });
+  try {
+    // Handle catch-all path parameter
+    // Vercel provides path segments in req.query.path as an array
+    // e.g., /api/projects/123 -> req.query.path = ['projects', '123']
+    let path = '/';
+    
+    if (req.query && req.query.path) {
+      // If path is an array, join it
+      const pathArray = Array.isArray(req.query.path) 
+        ? req.query.path 
+        : [req.query.path];
+      path = '/' + pathArray.join('/');
+    } else if (req.url) {
+      // Fallback to req.url if query.path is not available
+      path = req.url;
+      // Strip /api prefix if present
+      if (path.startsWith('/api')) {
+        path = path.replace(/^\/api/, '') || '/';
       }
-      resolve();
+    }
+    
+    // Update req.url and req.path for Express
+    req.url = path;
+    req.path = path;
+    req.originalUrl = req.originalUrl || path;
+    
+    // Call Express app
+    return new Promise((resolve, reject) => {
+      app(req, res, (err) => {
+        if (err) {
+          console.error('[api] Express error:', err);
+          if (!res.headersSent) {
+            res.status(500).json({ error: 'Internal server error', message: err.message });
+          }
+          reject(err);
+        } else if (!res.headersSent) {
+          res.status(404).json({ error: 'Not found', path: path });
+        }
+        resolve();
+      });
     });
-  });
+  } catch (error) {
+    console.error('[api] Handler error:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Internal server error', message: error.message });
+    }
+    throw error;
+  }
 }
 
