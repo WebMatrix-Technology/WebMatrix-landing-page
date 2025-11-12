@@ -17,7 +17,7 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    id: 6,
+    id: 11,
     title: 'Photography Portfolio Template',
     description: 'Modern, responsive portfolio template for photographers and visual artists.',
     category: 'Portfolio',
