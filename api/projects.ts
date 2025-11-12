@@ -1,9 +1,11 @@
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { Router } from 'express';
-import { ensureSupabase, authenticate as authenticateRequest } from './_lib/supabase.js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { ensureSupabase, authenticate as authenticateRequest, type AuthResult } from './_lib/supabase.js';
 
 const router = Router();
 
-const requireSupabase = (res) => {
+const requireSupabase = (res: Response): SupabaseClient | null => {
   const client = ensureSupabase(res);
   if (!client) {
     console.error('[api/projects] Supabase client unavailable.');
@@ -11,17 +13,18 @@ const requireSupabase = (res) => {
   return client;
 };
 
-const authenticate = async (req, res, next) => {
-  const result = await authenticateRequest(req);
-  if (result.error) {
-    return res.status(result.status).json({ error: result.error });
+const authenticate: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+  const result: AuthResult = await authenticateRequest(req);
+  if ('error' in result) {
+    res.status(result.status).json({ error: result.error });
+    return;
   }
-  req.user = result.user;
+  res.locals.user = result.user;
   next();
 };
 
 // Public GET endpoints
-router.get('/', async (_req, res) => {
+router.get('/', async (_req: Request, res: Response) => {
   const client = requireSupabase(res);
   if (!client) return;
   const { data, error } = await client
@@ -33,7 +36,7 @@ router.get('/', async (_req, res) => {
   res.json(data);
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request, res: Response) => {
   const client = requireSupabase(res);
   if (!client) return;
   const { data, error } = await client
@@ -52,12 +55,14 @@ router.get('/:id', async (req, res) => {
 // Auth required for mutations
 router.use(authenticate);
 
-router.post('/', async (req, res) => {
-  let payload;
+router.post('/', async (req: Request, res: Response) => {
+  let payload: ProjectRecord;
   try {
     payload = normalizeProjectPayload(req.body);
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    const message = err instanceof Error ? err.message : 'Invalid payload';
+    res.status(400).json({ error: message });
+    return;
   }
   
   try {
@@ -80,12 +85,14 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
-  let payload;
+router.put('/:id', async (req: Request, res: Response) => {
+  let payload: ProjectRecord;
   try {
     payload = normalizeProjectPayload(req.body, false);
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    const message = err instanceof Error ? err.message : 'Invalid payload';
+    res.status(400).json({ error: message });
+    return;
   }
   
   try {
@@ -125,7 +132,7 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: Request, res: Response) => {
   const client = requireSupabase(res);
   if (!client) return;
   const { data, error } = await client
@@ -142,7 +149,36 @@ router.delete('/:id', async (req, res) => {
   res.json(data);
 });
 
-function normalizeProjectPayload(body, requireAll = true) {
+type MetricPayload = { improvement: string; metric: string };
+type ProjectRecord = {
+  title: string;
+  description: string;
+  category: string;
+  tags: string[];
+  image: string;
+  mobile_image: string | null;
+  gallery: string[];
+  metrics: MetricPayload | null;
+  long_description: string | null;
+  website_url: string | null;
+  video_src: string | null;
+};
+
+type ProjectInput = {
+  title?: string;
+  description?: string;
+  category?: string;
+  tags?: string[] | string;
+  image?: string;
+  mobileImage?: string | null;
+  gallery?: string[] | string;
+  metrics?: MetricPayload | null;
+  longDescription?: string | null;
+  websiteUrl?: string | null;
+  videoSrc?: string | null;
+};
+
+function normalizeProjectPayload(body: ProjectInput, requireAll = true): ProjectRecord {
   const {
     title,
     description,
@@ -163,14 +199,26 @@ function normalizeProjectPayload(body, requireAll = true) {
     }
   }
 
+  const normalizedTags = Array.isArray(tags)
+    ? tags
+    : typeof tags === 'string'
+      ? tags.split(',').map((t) => t.trim()).filter(Boolean)
+      : [];
+
+  const normalizedGallery = Array.isArray(gallery)
+    ? gallery
+    : typeof gallery === 'string'
+      ? gallery.split(',').map((t) => t.trim()).filter(Boolean)
+      : [];
+
   return {
     title,
     description,
     category,
-    tags: Array.isArray(tags) ? tags : (typeof tags === 'string' ? tags.split(',').map((t) => t.trim()).filter(Boolean) : []),
+    tags: normalizedTags,
     image,
     mobile_image: mobileImage ?? null,
-    gallery: Array.isArray(gallery) ? gallery : (typeof gallery === 'string' ? gallery.split(',').map((t) => t.trim()).filter(Boolean) : []),
+    gallery: normalizedGallery,
     metrics: metrics ?? null,
     long_description: longDescription ?? null,
     website_url: websiteUrl ?? null,

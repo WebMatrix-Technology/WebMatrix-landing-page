@@ -1,9 +1,11 @@
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { Router } from 'express';
-import { ensureSupabase, authenticate as authenticateRequest } from './_lib/supabase.js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { ensureSupabase, authenticate as authenticateRequest, type AuthResult } from './_lib/supabase.js';
 
 const router = Router();
 
-const requireSupabase = (res) => {
+const requireSupabase = (res: Response): SupabaseClient | null => {
   const client = ensureSupabase(res);
   if (!client) {
     console.error('[api/posts] Supabase client unavailable.');
@@ -11,17 +13,18 @@ const requireSupabase = (res) => {
   return client;
 };
 
-const authenticate = async (req, res, next) => {
-  const result = await authenticateRequest(req);
-  if (result.error) {
-    return res.status(result.status).json({ error: result.error });
+const authenticate: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+  const result: AuthResult = await authenticateRequest(req);
+  if ('error' in result) {
+    res.status(result.status).json({ error: result.error });
+    return;
   }
-  req.user = result.user;
+  res.locals.user = result.user;
   next();
 };
 
 // Public GET endpoints, auth required for mutations
-router.get('/', async (_req, res) => {
+router.get('/', async (_req: Request, res: Response) => {
   const client = requireSupabase(res);
   if (!client) return;
   try {
@@ -45,7 +48,7 @@ router.get('/', async (_req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request, res: Response) => {
   const client = requireSupabase(res);
   if (!client) return;
   try {
@@ -72,14 +75,16 @@ router.get('/:id', async (req, res) => {
 });
 
 // Auth required for mutations
-router.post('/', authenticate, async (req, res) => {
+router.post('/', authenticate, async (req: Request, res: Response) => {
   const client = requireSupabase(res);
   if (!client) return;
-  let payload;
+  let payload: BlogPostRecord;
   try {
     payload = normalizePayload(req.body);
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    const message = err instanceof Error ? err.message : 'Invalid payload';
+    res.status(400).json({ error: message });
+    return;
   }
   const { data, error } = await client
     .from('blog_posts')
@@ -91,14 +96,16 @@ router.post('/', authenticate, async (req, res) => {
   res.status(201).json(data);
 });
 
-router.put('/:id', authenticate, async (req, res) => {
+router.put('/:id', authenticate, async (req: Request, res: Response) => {
   const client = requireSupabase(res);
   if (!client) return;
-  let payload;
+  let payload: BlogPostRecord;
   try {
     payload = normalizePayload(req.body, false);
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    const message = err instanceof Error ? err.message : 'Invalid payload';
+    res.status(400).json({ error: message });
+    return;
   }
   const { data, error } = await client
     .from('blog_posts')
@@ -114,7 +121,7 @@ router.put('/:id', authenticate, async (req, res) => {
   res.json(data);
 });
 
-router.delete('/:id', authenticate, async (req, res) => {
+router.delete('/:id', authenticate, async (req: Request, res: Response) => {
   const client = requireSupabase(res);
   if (!client) return;
   const { data, error } = await client
@@ -131,7 +138,29 @@ router.delete('/:id', authenticate, async (req, res) => {
   res.json(data);
 });
 
-function normalizePayload(body, requireAll = true) {
+type BlogPostRecord = {
+  title: string;
+  excerpt: string;
+  category: string;
+  content: string;
+  read_time: string | null;
+  tags: string[];
+  hero_image: string | null;
+  published_at: string | null;
+};
+
+type BlogPostInput = {
+  title?: string;
+  excerpt?: string;
+  category?: string;
+  content?: string;
+  readTime?: string | null;
+  tags?: string[] | string;
+  heroImage?: string | null;
+  publishedAt?: string | null;
+};
+
+function normalizePayload(body: BlogPostInput, requireAll = true): BlogPostRecord {
   const {
     title,
     excerpt,
@@ -149,13 +178,19 @@ function normalizePayload(body, requireAll = true) {
     }
   }
 
+  const normalizedTags = Array.isArray(tags)
+    ? tags
+    : typeof tags === 'string'
+      ? tags.split(',').map((t) => t.trim()).filter(Boolean)
+      : [];
+
   return {
     title,
     excerpt,
     category,
     content,
     read_time: readTime || null,
-    tags: Array.isArray(tags) ? tags : (typeof tags === 'string' ? tags.split(',').map((t) => t.trim()).filter(Boolean) : []),
+    tags: normalizedTags,
     hero_image: heroImage || null,
     published_at: publishedAt ? new Date(publishedAt).toISOString() : null,
   };

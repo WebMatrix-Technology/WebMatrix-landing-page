@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleResolution": "node16",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "noEmit": false,
+    "outDir": "dist/api",
+    "isolatedModules": false
+  },
+  "include": ["api/**/*.ts", "server.ts"],
+  "exclude": ["node_modules", "dist", "src"]
+}
+

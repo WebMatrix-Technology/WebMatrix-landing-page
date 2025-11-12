@@ -10,7 +10,7 @@
     }
   ],
   "functions": {
-    "api/[...path].js": {
+    "api/[...path].ts": {
       "maxDuration": 30
     }
   }

@@ -1,6 +1,8 @@
 // Vercel catch-all route for /api/*
 // This file handles all API routes: /api/projects, /api/posts, etc.
+import type { Request, Response } from 'express';
 import express from 'express';
+import type { CorsOptions } from 'cors';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -36,7 +38,7 @@ import dashboardRouter from './dashboard.js';
 const app = express();
 
 // CORS configuration
-const corsOptions = {
+const corsOptions: CorsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('vercel.app')) {
@@ -77,7 +79,13 @@ app.use((req, res) => {
 
 // Vercel serverless function handler
 // For catch-all routes, Vercel passes path segments as req.query.path (array)
-export default async function handler(req, res) {
+type PathQuery = { path?: string | string[] };
+type MutableRequest = Request & { path: string; url: string; originalUrl: string };
+
+export default async function handler(
+  req: Request<Record<string, unknown>, unknown, unknown, PathQuery>,
+  res: Response
+): Promise<void> {
   try {
     // Handle catch-all path parameter
     // Vercel provides path segments in req.query.path as an array
@@ -100,9 +108,10 @@ export default async function handler(req, res) {
     }
     
     // Update req.url and req.path for Express
-    req.url = path;
-    req.path = path;
-    req.originalUrl = req.originalUrl || path;
+    const mutableReq = req as MutableRequest;
+    mutableReq.url = path;
+    mutableReq.path = path;
+    mutableReq.originalUrl = req.originalUrl || path;
     
     console.log('[api] dispatching to express app with path', path);
 

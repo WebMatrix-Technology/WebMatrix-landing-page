@@ -1,7 +1,8 @@
+import type { Express, NextFunction, Request, RequestHandler, Response } from 'express';
 import { Router } from 'express';
 import { v2 as cloudinary } from 'cloudinary';
-import multer from 'multer';
-import { ensureSupabase, authenticate as authenticateRequest } from './_lib/supabase.js';
+import multer, { type FileFilterCallback } from 'multer';
+import { ensureSupabase, authenticate as authenticateRequest, type AuthResult } from './_lib/supabase.js';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -18,27 +19,28 @@ const upload = multer({
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
-  fileFilter: (req, file, cb) => {
+  fileFilter: (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed'), false);
+      cb(new Error('Only image files are allowed'));
     }
   },
 });
 
 // Auth middleware
-const authenticate = async (req, res, next) => {
-  const result = await authenticateRequest(req);
-  if (result.error) {
-    return res.status(result.status).json({ error: result.error });
+const authenticate: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+  const result: AuthResult = await authenticateRequest(req);
+  if ('error' in result) {
+    res.status(result.status).json({ error: result.error });
+    return;
   }
-  req.user = result.user;
+  res.locals.user = result.user;
   next();
 };
 
 // Upload endpoint
-router.post('/', authenticate, upload.single('image'), async (req, res) => {
+router.post('/', authenticate, upload.single('image'), async (req: Request, res: Response) => {
   if (!ensureSupabase(res)) return;
   try {
     if (!req.file) {
@@ -66,8 +68,9 @@ router.post('/', authenticate, upload.single('image'), async (req, res) => {
     });
   } catch (error) {
     console.error('Cloudinary upload error:', error);
+    const message = error instanceof Error ? error.message : 'Failed to upload image';
     res.status(500).json({ 
-      error: error.message || 'Failed to upload image' 
+      error: message 
     });
   }
 });

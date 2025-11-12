@@ -1,19 +1,22 @@
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { Router } from 'express';
-import { ensureSupabase, authenticate as authenticateRequest } from './_lib/supabase.js';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { ensureSupabase, authenticate as authenticateRequest, type AuthResult } from './_lib/supabase.js';
 
 const router = Router();
 
 // Authentication middleware for admin endpoints
-const authenticate = async (req, res, next) => {
-  const result = await authenticateRequest(req);
-  if (result.error) {
-    return res.status(result.status).json({ error: result.error });
+const authenticate: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+  const result: AuthResult = await authenticateRequest(req);
+  if ('error' in result) {
+    res.status(result.status).json({ error: result.error });
+    return;
   }
-  req.user = result.user;
+  res.locals.user = result.user;
   next();
 };
 
-const requireSupabase = (res) => {
+const requireSupabase = (res: Response): SupabaseClient | null => {
   const client = ensureSupabase(res);
   if (!client) {
     console.error('[api/leads] Supabase client unavailable.');
@@ -22,14 +25,16 @@ const requireSupabase = (res) => {
 };
 
 // Public endpoint - anyone can submit a lead
-router.post('/', async (req, res) => {
+router.post('/', async (req: Request, res: Response) => {
   const client = requireSupabase(res);
   if (!client) return;
-  let payload;
+  let payload: LeadRecord;
   try {
     payload = normalizeLeadPayload(req.body);
   } catch (err) {
-    return res.status(400).json({ error: err.message });
+    const message = err instanceof Error ? err.message : 'Invalid payload';
+    res.status(400).json({ error: message });
+    return;
   }
   try {
     const { data, error } = await client
@@ -59,7 +64,7 @@ router.post('/', async (req, res) => {
 });
 
 // Admin endpoints - require authentication
-router.get('/', authenticate, async (_req, res) => {
+router.get('/', authenticate, async (_req: Request, res: Response) => {
   const client = requireSupabase(res);
   if (!client) return;
   try {
@@ -81,7 +86,7 @@ router.get('/', authenticate, async (_req, res) => {
   }
 });
 
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', authenticate, async (req: Request, res: Response) => {
   const client = requireSupabase(res);
   if (!client) return;
   try {
@@ -107,7 +112,7 @@ router.get('/:id', authenticate, async (req, res) => {
   }
 });
 
-router.delete('/:id', authenticate, async (req, res) => {
+router.delete('/:id', authenticate, async (req: Request, res: Response) => {
   const client = requireSupabase(res);
   if (!client) return;
   try {
@@ -129,7 +134,17 @@ router.delete('/:id', authenticate, async (req, res) => {
   }
 });
 
-function normalizeLeadPayload(body) {
+type LeadRecord = {
+  name: string;
+  email: string;
+  budget: string | null;
+  timeline: string | null;
+  message: string;
+};
+
+type LeadInput = Partial<LeadRecord> & { name?: string; email?: string; message?: string };
+
+function normalizeLeadPayload(body: LeadInput): LeadRecord {
   const {
     name,
     email,
@@ -159,7 +174,7 @@ function normalizeLeadPayload(body) {
     name: name.trim(),
     email: email.trim().toLowerCase(),
     budget: budget?.trim() || null,
-    timeline: timeline || null,
+    timeline: timeline?.trim() || null,
     message: message.trim(),
   };
 }

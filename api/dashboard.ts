@@ -1,22 +1,25 @@
+import type { NextFunction, Request, RequestHandler, Response } from 'express';
 import { Router } from 'express';
-import { ensureSupabase, authenticate as authenticateRequest } from './_lib/supabase.js';
+import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
+import { ensureSupabase, authenticate as authenticateRequest, type AuthResult } from './_lib/supabase.js';
 
 const router = Router();
 
 // Authentication middleware
-const authenticate = async (req, res, next) => {
-  const result = await authenticateRequest(req);
-  if (result.error) {
-    return res.status(result.status).json({ error: result.error });
+const authenticate: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+  const result: AuthResult = await authenticateRequest(req);
+  if ('error' in result) {
+    res.status(result.status).json({ error: result.error });
+    return;
   }
-  req.user = result.user;
+  res.locals.user = result.user;
   next();
 };
 
 router.use(authenticate);
 
-router.get('/', async (_req, res) => {
-  const client = ensureSupabase(res);
+router.get('/', async (_req: Request, res: Response) => {
+  const client: SupabaseClient | null = ensureSupabase(res);
   if (!client) return;
   try {
     const today = new Date();
@@ -83,7 +86,7 @@ router.get('/', async (_req, res) => {
       .limit(5);
 
     // Handle errors gracefully - if table doesn't exist, return 0
-    const getCount = (count, error, defaultValue = 0) => {
+    const getCount = (count: number | null, error: PostgrestError | null, defaultValue = 0) => {
       if (error) {
         // If table doesn't exist, return default value
         if (error.code === '42P01' || error.message?.includes('does not exist')) {
