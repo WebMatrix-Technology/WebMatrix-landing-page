@@ -33,7 +33,15 @@ router.get('/', async (_req: Request, res: Response) => {
     .order('created_at', { ascending: false });
 
   if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
+  
+  // Ensure featured columns exist with defaults if migration hasn't run yet
+  const normalizedData = (data || []).map((project: any) => ({
+    ...project,
+    is_featured: project.is_featured ?? false,
+    featured_order: project.featured_order ?? null,
+  }));
+  
+  res.json(normalizedData);
 });
 
 router.get('/:id', async (req: Request, res: Response) => {
@@ -49,7 +57,15 @@ router.get('/:id', async (req: Request, res: Response) => {
     const status = error.code === 'PGRST116' ? 404 : 500;
     return res.status(status).json({ error: error.message });
   }
-  res.json(data);
+  
+  // Ensure featured columns exist with defaults if migration hasn't run yet
+  const normalizedData = {
+    ...data,
+    is_featured: data.is_featured ?? false,
+    featured_order: data.featured_order ?? null,
+  };
+  
+  res.json(normalizedData);
 });
 
 // Auth required for mutations

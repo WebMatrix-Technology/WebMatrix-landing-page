@@ -67,6 +67,10 @@ export const FeaturedWork = () => {
             featuredOrder: p.featured_order,
           }));
 
+        // Debug logging
+        console.log('[FeaturedWork] Total projects:', allProjects.length);
+        console.log('[FeaturedWork] Featured projects:', allProjects.filter(p => p.isFeatured).map(p => ({ title: p.title, order: p.featuredOrder })));
+
         const featured = allProjects
           .filter((project) => project.isFeatured)
           .sort((a, b) => {
@@ -78,6 +82,8 @@ export const FeaturedWork = () => {
             return orderA - orderB;
           })
           .slice(0, 3);
+
+        console.log('[FeaturedWork] Final featured projects to display:', featured.length);
 
         setFeaturedProjects(
           featured.length > 0 ? featured : allProjects.slice(0, 3)
