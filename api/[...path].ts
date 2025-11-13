@@ -4,13 +4,10 @@ import type { Request, Response } from 'express';
 import express from 'express';
 import type { CorsOptions } from 'cors';
 import cors from 'cors';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { config as loadEnv } from 'dotenv';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const envPath = join(__dirname, '..', '.env');
-loadEnv({ path: envPath });
+// Only load .env file in development (Vercel provides env vars directly)
+// Note: Top-level await might not work in all serverless environments
+// So we'll load it lazily if needed
 
 const requiredEnvKeys = [
   'SUPABASE_URL',
@@ -28,54 +25,89 @@ try {
   console.warn('[api] failed to log env status', envLogError);
 }
 
-// Import routers
-import projectsRouter from './projects.js';
-import postsRouter from './posts.js';
-import uploadRouter from './upload.js';
-import leadsRouter from './leads.js';
-import dashboardRouter from './dashboard.js';
+// Lazy load routers to prevent module-level failures
+let app: express.Application | null = null;
+let routersLoaded = false;
 
-const app = express();
+async function initializeApp(): Promise<express.Application> {
+  if (app && routersLoaded) {
+    return app;
+  }
 
-// CORS configuration
-const corsOptions: CorsOptions = {
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('vercel.app')) {
-      return callback(null, true);
-    }
-    callback(null, true);
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
-};
+  try {
+    // Import routers dynamically
+    const [
+      { default: projectsRouter },
+      { default: postsRouter },
+      { default: uploadRouter },
+      { default: leadsRouter },
+      { default: dashboardRouter }
+    ] = await Promise.all([
+      import('./projects.js'),
+      import('./posts.js'),
+      import('./upload.js'),
+      import('./leads.js'),
+      import('./dashboard.js')
+    ]);
 
-app.use(cors(corsOptions));
-app.use(express.json({ limit: '5mb' }));
+    app = express();
 
-// API routes - paths will be like /projects, /posts, etc. (without /api prefix)
-app.use('/projects', projectsRouter);
-app.use('/posts', postsRouter);
-app.use('/upload', uploadRouter);
-app.use('/leads', leadsRouter);
-app.use('/dashboard', dashboardRouter);
+    // CORS configuration
+    const corsOptions: CorsOptions = {
+      origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
+        if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('vercel.app')) {
+          return callback(null, true);
+        }
+        callback(null, true);
+      },
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+    };
 
-app.get('/', (_req, res) => {
-  res.json({ 
-    message: 'API is running',
-    endpoints: ['/projects', '/posts', '/upload', '/leads', '/dashboard']
-  });
-});
+    app.use(cors(corsOptions));
+    app.use(express.json({ limit: '5mb' }));
 
-// Catch-all for undefined routes
-app.use((req, res) => {
-  res.status(404).json({ 
-    error: 'Not found',
-    path: req.path,
-    method: req.method
-  });
-});
+    // API routes - paths will be like /projects, /posts, etc. (without /api prefix)
+    app.use('/projects', projectsRouter);
+    app.use('/posts', postsRouter);
+    app.use('/upload', uploadRouter);
+    app.use('/leads', leadsRouter);
+    app.use('/dashboard', dashboardRouter);
+
+    app.get('/', (_req, res) => {
+      res.json({ 
+        message: 'API is running',
+        endpoints: ['/projects', '/posts', '/upload', '/leads', '/dashboard']
+      });
+    });
+
+    // Catch-all for undefined routes
+    app.use((req, res) => {
+      res.status(404).json({ 
+        error: 'Not found',
+        path: req.path,
+        method: req.method
+      });
+    });
+
+    routersLoaded = true;
+    return app;
+  } catch (error) {
+    console.error('[api] Failed to initialize app:', error);
+    // Return a minimal app that returns errors
+    const errorApp = express();
+    errorApp.use((_req, res) => {
+      res.status(500).json({ 
+        error: 'Failed to initialize API',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    });
+    return errorApp;
+  }
+}
+
 
 // Vercel serverless function handler
 // For catch-all routes, Vercel passes path segments as req.query.path (array)
@@ -115,9 +147,12 @@ export default async function handler(
     
     console.log('[api] dispatching to express app with path', path);
 
+    // Initialize app if not already initialized
+    const expressApp = await initializeApp();
+
     // Call Express app
     return new Promise((resolve, reject) => {
-      app(req, res, (err) => {
+      expressApp(req, res, (err) => {
         if (err) {
           console.error('[api] Express error:', err);
           if (!res.headersSent) {
@@ -133,7 +168,10 @@ export default async function handler(
   } catch (error) {
     console.error('[api] Handler error:', error);
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Internal server error', message: error.message });
+      res.status(500).json({ 
+        error: 'Internal server error', 
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
     throw error;
   }
