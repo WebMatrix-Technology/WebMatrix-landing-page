@@ -14,8 +14,10 @@ const requireSupabase = (res: Response): SupabaseClient | null => {
 };
 
 const authenticate: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
+  console.log('[api/projects] Authenticate middleware called for:', req.method, req.path);
   const result: AuthResult = await authenticateRequest(req);
   if ('error' in result) {
+    console.log('[api/projects] Authentication failed:', result.error);
     res.status(result.status).json({ error: result.error });
     return;
   }
@@ -23,7 +25,7 @@ const authenticate: RequestHandler = async (req: Request, res: Response, next: N
   next();
 };
 
-// Public GET endpoints
+// Public GET endpoints - MUST be defined before router.use(authenticate)
 router.get('/', async (_req: Request, res: Response) => {
   console.log('[api/projects] GET / - Starting request');
   const client = requireSupabase(res);

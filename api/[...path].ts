@@ -70,7 +70,16 @@ async function initializeApp(): Promise<express.Application> {
     app.use(express.json({ limit: '5mb' }));
 
     // API routes - paths will be like /projects, /posts, etc. (without /api prefix)
-    app.use('/projects', projectsRouter);
+    // Add logging middleware to track which routes are being hit
+    app.use((req, res, next) => {
+      console.log('[api] Route match check - path:', req.path, 'method:', req.method);
+      next();
+    });
+    
+    app.use('/projects', (req, res, next) => {
+      console.log('[api] Matched /projects route, path:', req.path);
+      next();
+    }, projectsRouter);
     app.use('/posts', postsRouter);
     app.use('/upload', uploadRouter);
     app.use('/leads', leadsRouter);
@@ -130,13 +139,21 @@ export default async function handler(
         ? req.query.path 
         : [req.query.path];
       path = '/' + pathArray.join('/');
+      console.log('[api] Path from query.path:', path, 'original query:', req.query);
     } else if (req.url) {
       // Fallback to req.url if query.path is not available
       path = req.url;
+      console.log('[api] Path from req.url (before strip):', path);
       // Strip /api prefix if present
       if (path.startsWith('/api')) {
         path = path.replace(/^\/api/, '') || '/';
       }
+      console.log('[api] Path from req.url (after strip):', path);
+    }
+    
+    // Also check req.originalUrl
+    if (req.originalUrl && !path.startsWith('/projects') && !path.startsWith('/posts')) {
+      console.log('[api] Also checking req.originalUrl:', req.originalUrl);
     }
     
     // Update req.url and req.path for Express
