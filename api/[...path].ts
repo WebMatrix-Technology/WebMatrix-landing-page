@@ -146,6 +146,8 @@ export default async function handler(
     mutableReq.originalUrl = req.originalUrl || path;
     
     console.log('[api] dispatching to express app with path', path);
+    console.log('[api] Environment check - SUPABASE_URL:', process.env.SUPABASE_URL ? 'set' : 'missing');
+    console.log('[api] Environment check - SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'set' : 'missing');
 
     // Initialize app if not already initialized
     const expressApp = await initializeApp();

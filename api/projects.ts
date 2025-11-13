@@ -25,23 +25,39 @@ const authenticate: RequestHandler = async (req: Request, res: Response, next: N
 
 // Public GET endpoints
 router.get('/', async (_req: Request, res: Response) => {
+  console.log('[api/projects] GET / - Starting request');
   const client = requireSupabase(res);
-  if (!client) return;
-  const { data, error } = await client
-    .from('projects')
-    .select('*')
-    .order('created_at', { ascending: false });
+  if (!client) {
+    console.error('[api/projects] GET / - Supabase client unavailable');
+    return;
+  }
+  console.log('[api/projects] GET / - Supabase client available, querying database');
+  
+  try {
+    const { data, error } = await client
+      .from('projects')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (error) return res.status(500).json({ error: error.message });
-  
-  // Ensure featured columns exist with defaults if migration hasn't run yet
-  const normalizedData = (data || []).map((project: any) => ({
-    ...project,
-    is_featured: project.is_featured ?? false,
-    featured_order: project.featured_order ?? null,
-  }));
-  
-  res.json(normalizedData);
+    if (error) {
+      console.error('[api/projects] GET / - Database error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    
+    console.log('[api/projects] GET / - Successfully fetched', data?.length || 0, 'projects');
+    
+    // Ensure featured columns exist with defaults if migration hasn't run yet
+    const normalizedData = (data || []).map((project: any) => ({
+      ...project,
+      is_featured: project.is_featured ?? false,
+      featured_order: project.featured_order ?? null,
+    }));
+    
+    res.json(normalizedData);
+  } catch (err) {
+    console.error('[api/projects] GET / - Unexpected error:', err);
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal server error' });
+  }
 });
 
 router.get('/:id', async (req: Request, res: Response) => {
