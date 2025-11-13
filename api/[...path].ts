@@ -26,7 +26,16 @@ try {
 }
 
 // External backend proxy mode
-const BACKEND_URL = process.env.BACKEND_URL || process.env.VITE_BACKEND_URL || '';
+function normalizeBackendUrl(url: string | undefined | null): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  const hasProtocol = /^https?:\/\//i.test(trimmed);
+  const withProtocol = hasProtocol ? trimmed : `https://${trimmed}`;
+  return withProtocol.replace(/\/+$/, '');
+}
+
+const BACKEND_URL = normalizeBackendUrl(process.env.BACKEND_URL || process.env.VITE_BACKEND_URL);
 
 // Optional minimal express (kept for potential middleware/CORS if needed later)
 const app = express();
