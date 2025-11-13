@@ -12,10 +12,18 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}, tok
     headers.set('Authorization', `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_BASE}${path}`, {
+  // Add cache control for GET requests to prevent stale data
+  const fetchOptions: RequestInit = {
     ...options,
     headers,
-  });
+  };
+  
+  // For GET requests, add cache control
+  if (options.method === 'GET' || !options.method) {
+    fetchOptions.cache = 'no-store';
+  }
+
+  const response = await fetch(`${API_BASE}${path}`, fetchOptions);
 
   if (!response.ok) {
     let errorMessage = response.statusText;

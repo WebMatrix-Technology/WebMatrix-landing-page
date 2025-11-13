@@ -25,97 +25,25 @@ try {
   console.warn('[api] failed to log env status', envLogError);
 }
 
-// Lazy load routers to prevent module-level failures
-let app: express.Application | null = null;
-let routersLoaded = false;
+// External backend proxy mode
+const BACKEND_URL = process.env.BACKEND_URL || process.env.VITE_BACKEND_URL || '';
 
-async function initializeApp(): Promise<express.Application> {
-  if (app && routersLoaded) {
-    return app;
-  }
-
-  try {
-    // Import routers dynamically
-    const [
-      { default: projectsRouter },
-      { default: postsRouter },
-      { default: uploadRouter },
-      { default: leadsRouter },
-      { default: dashboardRouter }
-    ] = await Promise.all([
-      import('./projects.js'),
-      import('./posts.js'),
-      import('./upload.js'),
-      import('./leads.js'),
-      import('./dashboard.js')
-    ]);
-
-    app = express();
-
-    // CORS configuration
-    const corsOptions: CorsOptions = {
-      origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-        if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('vercel.app')) {
-          return callback(null, true);
-        }
-        callback(null, true);
-      },
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
-    };
-
-    app.use(cors(corsOptions));
-    app.use(express.json({ limit: '5mb' }));
-
-    // API routes - paths will be like /projects, /posts, etc. (without /api prefix)
-    // Add logging middleware to track which routes are being hit
-    app.use((req, res, next) => {
-      console.log('[api] Route match check - path:', req.path, 'method:', req.method);
-      next();
-    });
-    
-    app.use('/projects', (req, res, next) => {
-      console.log('[api] Matched /projects route, path:', req.path);
-      next();
-    }, projectsRouter);
-    app.use('/posts', postsRouter);
-    app.use('/upload', uploadRouter);
-    app.use('/leads', leadsRouter);
-    app.use('/dashboard', dashboardRouter);
-
-    app.get('/', (_req, res) => {
-      res.json({ 
-        message: 'API is running',
-        endpoints: ['/projects', '/posts', '/upload', '/leads', '/dashboard']
-      });
-    });
-
-    // Catch-all for undefined routes
-    app.use((req, res) => {
-      res.status(404).json({ 
-        error: 'Not found',
-        path: req.path,
-        method: req.method
-      });
-    });
-
-    routersLoaded = true;
-    return app;
-  } catch (error) {
-    console.error('[api] Failed to initialize app:', error);
-    // Return a minimal app that returns errors
-    const errorApp = express();
-    errorApp.use((_req, res) => {
-      res.status(500).json({ 
-        error: 'Failed to initialize API',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      });
-    });
-    return errorApp;
-  }
-}
+// Optional minimal express (kept for potential middleware/CORS if needed later)
+const app = express();
+const corsOptions: CorsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('vercel.app')) {
+      return callback(null, true);
+    }
+    callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept']
+};
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '5mb' }));
 
 
 // Vercel serverless function handler
@@ -156,33 +84,71 @@ export default async function handler(
       console.log('[api] Also checking req.originalUrl:', req.originalUrl);
     }
     
-    // Update req.url and req.path for Express
-    const mutableReq = req as MutableRequest;
-    mutableReq.url = path;
-    mutableReq.path = path;
-    mutableReq.originalUrl = req.originalUrl || path;
-    
-    console.log('[api] dispatching to express app with path', path);
-    console.log('[api] Environment check - SUPABASE_URL:', process.env.SUPABASE_URL ? 'set' : 'missing');
-    console.log('[api] Environment check - SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'set' : 'missing');
+    // If external backend configured, proxy the request
+    if (BACKEND_URL) {
+      const originalUrl = req.originalUrl || req.url || path;
+      const queryIndex = originalUrl.indexOf('?');
+      const queryString = queryIndex >= 0 ? originalUrl.slice(queryIndex) : '';
 
-    // Initialize app if not already initialized
-    const expressApp = await initializeApp();
+      const targetBase = BACKEND_URL.replace(/\/$/, '');
+      const targetUrl = `${targetBase}${path}${queryString}`;
 
-    // Call Express app
-    return new Promise((resolve, reject) => {
-      expressApp(req, res, (err) => {
-        if (err) {
-          console.error('[api] Express error:', err);
-          if (!res.headersSent) {
-            res.status(500).json({ error: 'Internal server error', message: err.message });
+      // Build headers (strip hop-by-hop)
+      const forwardHeaders: Record<string, string> = {};
+      for (const [key, value] of Object.entries(req.headers)) {
+        if (!value) continue;
+        const lower = key.toLowerCase();
+        if (['host', 'connection', 'content-length'].includes(lower)) continue;
+        forwardHeaders[key] = Array.isArray(value) ? value.join(',') : String(value);
+      }
+
+      let body: BodyInit | undefined = undefined;
+      if (req.method && !['GET', 'HEAD'].includes(req.method.toUpperCase())) {
+        // Prefer JSON; adjust if you add multipart endpoints
+        if (req.is('application/json') && typeof req.body !== 'undefined') {
+          body = JSON.stringify(req.body);
+          forwardHeaders['Content-Type'] = 'application/json';
+        } else if (typeof req.body === 'string') {
+          body = req.body;
+        } else {
+          // As a fallback, re-stringify body if present
+          try {
+            body = JSON.stringify(req.body ?? {});
+            forwardHeaders['Content-Type'] = 'application/json';
+          } catch {
+            body = undefined;
           }
-          reject(err);
-        } else if (!res.headersSent) {
-          res.status(404).json({ error: 'Not found', path: path });
         }
-        resolve();
+      }
+
+      console.log('[api-proxy] ->', req.method, targetUrl);
+
+      const backendResponse = await fetch(targetUrl, {
+        method: req.method,
+        headers: forwardHeaders,
+        body,
       });
+
+      // forward status and body
+      const contentType = backendResponse.headers.get('content-type') || 'application/json';
+      res.status(backendResponse.status);
+      res.setHeader('content-type', contentType);
+
+      if (contentType.includes('application/json')) {
+        const data = await backendResponse.json().catch(() => ({}));
+        res.json(data);
+      } else {
+        const text = await backendResponse.text();
+        res.send(text);
+      }
+      return;
+    }
+
+    // If no external backend configured, show diagnostic
+    res.status(500).json({
+      error: 'Backend URL not configured',
+      message: 'Set BACKEND_URL (or VITE_BACKEND_URL) environment variable to your external backend base URL.',
+      path,
     });
   } catch (error) {
     console.error('[api] Handler error:', error);

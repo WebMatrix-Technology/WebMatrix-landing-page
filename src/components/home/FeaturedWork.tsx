@@ -9,7 +9,7 @@ import { apiRequest } from '@/lib/api';
 import { DevicePreview } from '@/components/ui/device-preview';
 import { useEffect, useState } from 'react';
 
-type ApiProject = {
+interface ApiProject {
   id: string;
   title: string;
   description: string;
@@ -24,9 +24,9 @@ type ApiProject = {
   video_src: string | null;
   is_featured: boolean | null;
   featured_order: number | null;
-};
+}
 
-type Project = {
+interface Project {
   id: string;
   title: string;
   description: string;
@@ -41,60 +41,52 @@ type Project = {
   videoSrc?: string;
   isFeatured: boolean;
   featuredOrder: number | null;
-};
+}
 
 export const FeaturedWork = () => {
-  const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
+  const [projectsToShow, setProjectsToShow] = useState<Project[]>([]);
 
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        const data = await apiRequest<ApiProject[]>('/api/projects', { method: 'GET' });
+        // Add cache-busting to ensure fresh data
+        const timestamp = new Date().getTime();
+        const data = await apiRequest<ApiProject[]>(`/api/projects?t=${timestamp}`, { 
+          method: 'GET',
+          cache: 'no-store' 
+        });
+        
         const allProjects: Project[] = (data || []).map((p) => ({
-            id: p.id,
-            title: p.title,
-            description: p.description,
-            category: p.category,
-            tags: p.tags ?? [],
-            image: p.image,
-            mobileImage: p.mobile_image ?? undefined,
-            gallery: p.gallery ?? undefined,
-            metrics: p.metrics ?? undefined,
-            longDescription: p.long_description ?? undefined,
-            websiteUrl: p.website_url ?? undefined,
-            videoSrc: p.video_src ?? undefined,
-            isFeatured: Boolean(p.is_featured),
-            featuredOrder: p.featured_order,
-          }));
+          id: p.id,
+          title: p.title,
+          description: p.description,
+          category: p.category,
+          tags: p.tags ?? [],
+          image: p.image,
+          mobileImage: p.mobile_image ?? undefined,
+          gallery: p.gallery ?? undefined,
+          metrics: p.metrics ?? undefined,
+          longDescription: p.long_description ?? undefined,
+          websiteUrl: p.website_url ?? undefined,
+          videoSrc: p.video_src ?? undefined,
+          isFeatured: Boolean(p.is_featured),
+          featuredOrder: p.featured_order,
+        }));
 
-        // Debug logging
-        console.log('[FeaturedWork] Total projects:', allProjects.length);
-        console.log('[FeaturedWork] Featured projects:', allProjects.filter(p => p.isFeatured).map(p => ({ title: p.title, order: p.featuredOrder })));
+        console.log('[FeaturedWork] All projects loaded:', allProjects.length);
+        console.log('[FeaturedWork] First 3 projects:', allProjects.slice(0, 3).map(p => ({ id: p.id, title: p.title })));
 
-        const featured = allProjects
-          .filter((project) => project.isFeatured)
-          .sort((a, b) => {
-            const orderA = a.featuredOrder ?? Number.MAX_SAFE_INTEGER;
-            const orderB = b.featuredOrder ?? Number.MAX_SAFE_INTEGER;
-            if (orderA === orderB) {
-              return a.title.localeCompare(b.title);
-            }
-            return orderA - orderB;
-          })
-          .slice(0, 3);
-
-        console.log('[FeaturedWork] Final featured projects to display:', featured.length);
-
-        setFeaturedProjects(
-          featured.length > 0 ? featured : allProjects.slice(0, 3)
-        );
+        // Always show the latest three projects (API already returns newest first)
+        const latest = allProjects.slice(0, 3);
+        setProjectsToShow(latest);
       } catch (err) {
-        console.error('Failed to load featured projects:', err);
-        setFeaturedProjects([]);
+        console.error('Failed to load projects:', err);
+        setProjectsToShow([]);
       }
     };
     loadProjects();
   }, []);
+
   return (
     <section className="py-24 bg-secondary/30">
       <div className="container mx-auto px-4">
@@ -106,15 +98,15 @@ export const FeaturedWork = () => {
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-4xl lg:text-display-sm font-display mb-4">
-            Featured <span className="text-gradient">Work</span>
+            Latest <span className="text-gradient">Work</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Explore our latest projects showcasing cutting-edge web experiences
+            Explore our newest projects showcasing cutting-edge web experiences
           </p>
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {featuredProjects.map((project, index) => ( // Use featuredProjects
+          {projectsToShow.map((project, index) => (
             <motion.div
               key={project.id}
               initial={{ opacity: 0, y: 50, scale: 0.9 }}
@@ -126,7 +118,6 @@ export const FeaturedWork = () => {
                 ease: [0.22, 1, 0.36, 1]
               }}
             >
-              {/* This Link tag now wraps the entire card */}
               <Link to={`/work/${project.id}`}>
                 <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all hover:shadow-glow h-full">
                   <div className="aspect-video relative overflow-hidden rounded-t-lg bg-zinc-900">
@@ -142,7 +133,6 @@ export const FeaturedWork = () => {
                       </div>
                     </div>
 
-                    {/* Dark gradient overlay for contrast */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
 
                     <div className="absolute top-4 right-4">
@@ -161,13 +151,12 @@ export const FeaturedWork = () => {
                         </Badge>
                       ))}
                     </div>
-                    {project.metrics && ( // Check if metrics exist
+                    {project.metrics && (
                       <div className="flex items-center justify-between pt-4 border-t border-border">
                         <div>
                           <div className="text-2xl font-bold text-primary">{project.metrics.improvement}</div>
                           <div className="text-xs text-muted-foreground">{project.metrics.metric}</div>
                         </div>
-                        {/* Changed the Link to plain text since the card is the link */}
                         <div className="text-primary text-sm font-medium">
                           View Case Study →
                         </div>
