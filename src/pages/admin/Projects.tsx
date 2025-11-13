@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef, type CSSProperties } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -133,6 +133,9 @@ const SortableGalleryItem = ({ id, src, index, onRemove, onReplace, getAccessTok
 const ProjectsAdmin = () => {
   const { getAccessToken } = useAdminAuth();
   const [projects, setProjects] = useState<AdminProject[]>([]);
+  const [featuredOrderDraft, setFeaturedOrderDraft] = useState<AdminProject[]>([]);
+  const [orderDirty, setOrderDirty] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
   const [editing, setEditing] = useState<AdminProject | null>(null);
   const [form, setForm] = useState<typeof emptyForm>(emptyForm);
   const [loading, setLoading] = useState(true);
@@ -170,13 +173,32 @@ const ProjectsAdmin = () => {
   featuredOrder: p.featured_order,
   }), []);
 
+  const sortProjects = useCallback((list: AdminProject[]) => {
+    return [...list].sort((a, b) => {
+      const orderA = a.featuredOrder ?? Number.MAX_SAFE_INTEGER;
+      const orderB = b.featuredOrder ?? Number.MAX_SAFE_INTEGER;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.title.localeCompare(b.title);
+    });
+  }, []);
+
+  const filterFeatured = useCallback(
+    (list: AdminProject[]) =>
+      sortProjects(list.filter((project) => project.isFeatured)),
+    [sortProjects],
+  );
+
   const fetchProjects = useCallback(async () => {
     setLoading(true);
     try {
       const token = await getAccessToken();
       if (!token) throw new Error('Session expired. Please log in again.');
       const data = await apiRequest<ApiProject[]>('/api/projects', {}, token);
-      setProjects(data.map(mapProject));
+      const mapped = data.map(mapProject);
+      const sorted = sortProjects(mapped);
+      setProjects(sorted);
+      setFeaturedOrderDraft(filterFeatured(sorted));
+      setOrderDirty(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to load projects.');
     } finally {
@@ -201,11 +223,24 @@ const ProjectsAdmin = () => {
   const parseTags = (value: string) =>
     value.split(',').map((tag) => tag.trim()).filter(Boolean);
 
+  const getNextFeaturedOrder = useCallback(() => {
+    const existingOrders = projects
+      .filter((p) => p.isFeatured && typeof p.featuredOrder === 'number')
+      .map((p) => p.featuredOrder as number);
+    if (existingOrders.length === 0) {
+      return 1;
+    }
+    return Math.max(...existingOrders) + 1;
+  }, [projects]);
+
   const buildPayload = useCallback((data: typeof emptyForm) => {
     const trimmedOrder =
       typeof data.featuredOrder === 'string' ? data.featuredOrder.trim() : '';
     const parsedOrder =
       trimmedOrder === '' ? null : Number.isNaN(Number(trimmedOrder)) ? null : Number(trimmedOrder);
+    const featuredOrderValue = data.isFeatured
+      ? parsedOrder ?? getNextFeaturedOrder()
+      : null;
 
     return {
       title: data.title,
@@ -220,9 +255,37 @@ const ProjectsAdmin = () => {
       videoSrc: data.videoSrc?.trim() || null,
       metrics: data.metrics ?? null,
       isFeatured: data.isFeatured,
-      featuredOrder: data.isFeatured ? parsedOrder : null,
+      featuredOrder: featuredOrderValue,
     };
-  }, []);
+  }, [getNextFeaturedOrder]);
+
+  const projectToForm = useCallback(
+    (project: AdminProject): typeof emptyForm => ({
+      title: project.title,
+      description: project.description,
+      category: project.category,
+      tags: project.tags.join(', '),
+      image: project.image,
+      mobileImage: project.mobileImage || '',
+      gallery: project.gallery || [],
+      longDescription: project.longDescription || '',
+      websiteUrl: project.websiteUrl || '',
+      videoSrc: project.videoSrc || '',
+      metrics: project.metrics,
+      isFeatured: project.isFeatured,
+      featuredOrder: project.featuredOrder != null ? String(project.featuredOrder) : '',
+    }),
+    [],
+  );
+
+  const buildPayloadFromProject = useCallback(
+    (project: AdminProject, overrides: Partial<typeof emptyForm> = {}) =>
+      buildPayload({
+        ...projectToForm(project),
+        ...overrides,
+      }),
+    [buildPayload, projectToForm],
+  );
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -286,6 +349,84 @@ const ProjectsAdmin = () => {
     });
     setShowAdvanced(!!(project.metrics || project.websiteUrl || project.videoSrc || project.longDescription));
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleFeaturedOrderDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    setFeaturedOrderDraft((current) => {
+      const oldIndex = current.findIndex((item) => item.id === active.id);
+      const newIndex = current.findIndex((item) => item.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return current;
+
+      const reordered = arrayMove(current, oldIndex, newIndex).map((item, index) => ({
+        ...item,
+        featuredOrder: index + 1,
+      }));
+
+      setProjects((prev) =>
+        prev.map((project) => {
+          const updated = reordered.find((item) => item.id === project.id);
+          return updated ? { ...project, featuredOrder: updated.featuredOrder } : project;
+        }),
+      );
+      setOrderDirty(true);
+      return reordered;
+    });
+  };
+
+  const promoteFeaturedProject = (projectId: string) => {
+    setFeaturedOrderDraft((current) => {
+      const index = current.findIndex((item) => item.id === projectId);
+      if (index <= 0) return current;
+      const reordered = arrayMove(current, index, 0).map((item, idx) => ({
+        ...item,
+        featuredOrder: idx + 1,
+      }));
+      setProjects((prev) =>
+        prev.map((project) => {
+          const updated = reordered.find((item) => item.id === project.id);
+          return updated ? { ...project, featuredOrder: updated.featuredOrder } : project;
+        }),
+      );
+      setOrderDirty(true);
+      return reordered;
+    });
+  };
+
+  const saveFeaturedOrder = async () => {
+    if (!orderDirty || featuredOrderDraft.length === 0) return;
+    setSavingOrder(true);
+    try {
+      const token = await getAccessToken();
+      if (!token) throw new Error('Session expired. Please log in again.');
+
+      await Promise.all(
+        featuredOrderDraft.map((project, index) => {
+          const payload = buildPayloadFromProject(project, {
+            featuredOrder: String(index + 1),
+            isFeatured: true,
+          });
+
+          return apiRequest<ApiProject>(
+            `/api/projects/${project.id}`,
+            {
+              method: 'PUT',
+              body: JSON.stringify(payload),
+            },
+            token,
+          );
+        }),
+      );
+
+      toast.success('Featured order updated');
+      await fetchProjects();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update featured order.');
+    } finally {
+      setSavingOrder(false);
+    }
   };
 
   const onDelete = async (id: string) => {
@@ -434,8 +575,8 @@ const ProjectsAdmin = () => {
                   <div>
                     <Label className="text-base">Show in Latest Work</Label>
                     <p className="text-sm text-muted-foreground">
-                      Toggle on to feature this project on the home page. Use the optional order to control display
-                      priority (lower numbers appear first).
+                      Toggle on to feature this project on the home page. Spotlight order is controlled below—lower
+                      numbers appear first.
                     </p>
                   </div>
                   <div className="flex flex-col items-end gap-3">
@@ -445,7 +586,7 @@ const ProjectsAdmin = () => {
                         setForm((f) => ({
                           ...f,
                           isFeatured: checked,
-                          featuredOrder: checked ? f.featuredOrder : '',
+                          featuredOrder: checked ? f.featuredOrder || String(getNextFeaturedOrder()) : '',
                         }))
                       }
                     />
@@ -738,6 +879,55 @@ const ProjectsAdmin = () => {
         </CardContent>
       </Card>
 
+      <Card className="border-border/50">
+        <CardHeader>
+          <CardTitle className="text-lg">Featured Work Order</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {featuredOrderDraft.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border/60 p-6 text-sm text-muted-foreground">
+              Mark projects as &quot;Show in Latest Work&quot; to manage their display order here.
+            </div>
+          ) : (
+            <>
+              <div className="rounded-lg border border-border/50 bg-muted/10 px-4 py-3 text-xs text-muted-foreground">
+                The first item in this list powers the Latest Work spotlight on the homepage.
+              </div>
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleFeaturedOrderDragEnd}>
+                <SortableContext items={featuredOrderDraft.map((project) => project.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-3">
+                    {featuredOrderDraft.map((project, index) => (
+                      <FeaturedOrderItem key={project.id} project={project} index={index} onPromote={() => promoteFeaturedProject(project.id)} />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+              <div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-muted/10 p-4 text-xs text-muted-foreground">
+                <div className="flex items-center justify-between gap-2">
+                  <span>Drag projects to reorder them. Lower numbers appear first on the homepage.</span>
+                  <Button
+                    size="sm"
+                    onClick={saveFeaturedOrder}
+                    disabled={!orderDirty || savingOrder}
+                    className="whitespace-nowrap"
+                  >
+                    {savingOrder ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save featured order'
+                    )}
+                  </Button>
+                </div>
+                {orderDirty && !savingOrder && <span className="text-[11px] text-primary">You have unsaved changes.</span>}
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Projects List */}
       {isLoading ? (
         <div className="text-center py-12">
@@ -807,3 +997,48 @@ const ProjectsAdmin = () => {
 };
 
 export default ProjectsAdmin;
+
+const FeaturedOrderItem = ({ project, index, onPromote }: { project: AdminProject; index: number; onPromote: () => void }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id });
+  const style: CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center justify-between gap-4 rounded-xl border border-border/50 bg-background/80 px-4 py-3 shadow-sm backdrop-blur transition-colors hover:border-primary/40"
+    >
+      <div className="flex flex-1 items-center gap-4">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            {...attributes}
+            {...listeners}
+            className="rounded-full border border-border/60 bg-muted/20 p-2 text-muted-foreground transition hover:text-primary"
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-primary">#{index + 1}</span>
+              <span className="text-sm font-medium">{project.title}</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {project.category} &middot; Current order: {project.featuredOrder ?? '—'}
+            </div>
+          </div>
+        </div>
+        <Button size="sm" variant="outline" onClick={onPromote} className="ml-auto whitespace-nowrap">
+          Set as Spotlight
+        </Button>
+      </div>
+      <div className="text-xs text-muted-foreground whitespace-nowrap pl-4">
+        Updated order: <span className="font-semibold text-primary">{index + 1}</span>
+      </div>
+    </div>
+  );
+};

@@ -1,91 +1,58 @@
 // src/components/home/FeaturedWork.tsx
 
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ExternalLink } from 'lucide-react';
+import { ArrowRight, ExternalLink, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { apiRequest } from '@/lib/api';
 import { DevicePreview } from '@/components/ui/device-preview';
-import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useProjects, type Project } from '@/hooks/useProjects';
+import { projects as staticProjects } from '@/data/projects';
+import { adaptStaticProject } from '@/utils/project-adapters';
+const getFallbackProjects = (limit: number): Project[] =>
+  [...staticProjects]
+    .map((project, index) => ({ project, index }))
+    .sort((a, b) => {
+      const orderA = typeof a.project.featuredOrder === 'number' ? a.project.featuredOrder : a.index + 1000;
+      const orderB = typeof b.project.featuredOrder === 'number' ? b.project.featuredOrder : b.index + 1000;
+      return orderA - orderB;
+    })
+    .slice(0, limit)
+    .map(({ project }, index) => adaptStaticProject(project, index));
 
-interface ApiProject {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  tags: string[] | null;
-  image: string;
-  mobile_image: string | null;
-  gallery: string[] | null;
-  metrics: { improvement: string; metric: string } | null;
-  long_description: string | null;
-  website_url: string | null;
-  video_src: string | null;
-  is_featured: boolean | null;
-  featured_order: number | null;
-}
-
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  category: string;
-  tags: string[];
-  image: string;
-  mobileImage?: string;
-  gallery?: string[];
-  metrics?: { improvement: string; metric: string };
-  longDescription?: string;
-  websiteUrl?: string;
-  videoSrc?: string;
-  isFeatured: boolean;
-  featuredOrder: number | null;
-}
+const FeaturedProjectSkeleton = () => (
+  <Card className="h-full overflow-hidden border-border/50">
+    <div className="aspect-video bg-muted/60" />
+    <CardContent className="p-6 space-y-4">
+      <Skeleton className="h-5 w-24" />
+      <Skeleton className="h-6 w-3/4" />
+      <Skeleton className="h-4 w-full" />
+      <Skeleton className="h-4 w-2/3" />
+      <div className="flex gap-2">
+        <Skeleton className="h-6 w-16" />
+        <Skeleton className="h-6 w-20" />
+      </div>
+      <Skeleton className="h-10 w-full" />
+    </CardContent>
+  </Card>
+);
 
 export const FeaturedWork = () => {
-  const [projectsToShow, setProjectsToShow] = useState<Project[]>([]);
+  const maxProjects = 3;
+  const fallbackProjects = useMemo(() => getFallbackProjects(maxProjects), []);
 
-  useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        // Add cache-busting to ensure fresh data
-        const timestamp = new Date().getTime();
-        const data = await apiRequest<ApiProject[]>(`/api/projects?t=${timestamp}`, { 
-          method: 'GET',
-          cache: 'no-store' 
-        });
-        
-        const allProjects: Project[] = (data || []).map((p) => ({
-          id: p.id,
-          title: p.title,
-          description: p.description,
-          category: p.category,
-          tags: p.tags ?? [],
-          image: p.image,
-          mobileImage: p.mobile_image ?? undefined,
-          gallery: p.gallery ?? undefined,
-          metrics: p.metrics ?? undefined,
-          longDescription: p.long_description ?? undefined,
-          websiteUrl: p.website_url ?? undefined,
-          videoSrc: p.video_src ?? undefined,
-          isFeatured: Boolean(p.is_featured),
-          featuredOrder: p.featured_order,
-        }));
+  const { projects: projectsToShow, isLoading, isError, error, isFallback, refetch } = useProjects({
+    featuredOnly: false,
+    limit: maxProjects,
+    order: 'admin',
+    fallback: fallbackProjects,
+  });
 
-        console.log('[FeaturedWork] All projects loaded:', allProjects.length);
-        console.log('[FeaturedWork] First 3 projects:', allProjects.slice(0, 3).map(p => ({ id: p.id, title: p.title })));
-
-        // Always show the latest three projects (API already returns newest first)
-        const latest = allProjects.slice(0, 3);
-        setProjectsToShow(latest);
-      } catch (err) {
-        console.error('Failed to load projects:', err);
-        setProjectsToShow([]);
-      }
-    };
-    loadProjects();
-  }, []);
+  const hasProjects = projectsToShow.length > 0;
+  const skeletonCount = Math.max(projectsToShow.length || fallbackProjects.length || 6, 3);
 
   return (
     <section className="py-24 bg-secondary/30">
@@ -98,29 +65,73 @@ export const FeaturedWork = () => {
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-4xl lg:text-display-sm font-display mb-4">
-            Latest <span className="text-gradient">Work</span>
+            Featured <span className="text-gradient">Work</span>
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
             Explore our newest projects showcasing cutting-edge web experiences
           </p>
         </motion.div>
 
+        <div className="mb-12 text-center text-sm text-muted-foreground">
+          Projects appear in the sequence arranged in the admin panel.
+        </div>
+
+        {isFallback && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-8 rounded-lg border border-border/60 bg-background/60 px-6 py-4 text-sm text-muted-foreground shadow-sm"
+          >
+            We&apos;re showing a curated selection while we reconnect to the live portfolio.
+          </motion.div>
+        )}
+
+        {isError && !hasProjects && (
+          <div className="mb-12 flex flex-col items-center justify-center gap-4 rounded-lg border border-destructive/40 bg-destructive/10 p-6 text-center">
+            <div className="text-destructive font-medium">We couldn&apos;t load our featured projects.</div>
+            <p className="text-sm text-muted-foreground">
+              {error ?? 'Please try again in a moment or view all projects from the work page.'}
+            </p>
+            <Button variant="outline" size="sm" onClick={refetch} className="inline-flex items-center gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Try Again
+            </Button>
+          </div>
+        )}
+
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {projectsToShow.map((project, index) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 50, scale: 0.9 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ 
-                duration: 0.6, 
-                delay: index * 0.15,
-                ease: [0.22, 1, 0.36, 1]
-              }}
-            >
-              <Link to={`/work/${project.id}`}>
-                <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all hover:shadow-glow h-full">
-                  <div className="aspect-video relative overflow-hidden rounded-t-lg bg-zinc-900">
+          {isLoading
+            ? Array.from({ length: skeletonCount }).map((_, index) => (
+                <motion.div
+                  key={`skeleton-${index}`}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                >
+                  <FeaturedProjectSkeleton />
+                </motion.div>
+              ))
+            : projectsToShow.map((project, index) => (
+                <motion.div
+                  key={project.id}
+                  initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{
+                    duration: 0.6,
+                    delay: index * 0.15,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                >
+                  <Link to={`/work/${project.id}`}>
+                    <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all hover:shadow-glow h-full">
+                      <div className="aspect-video relative overflow-hidden rounded-t-lg bg-zinc-900">
+                        <div className="absolute left-4 top-4 z-10">
+                          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/60 bg-background/70 text-sm font-semibold text-primary shadow-lg backdrop-blur">
+                            {index + 1}
+                          </span>
+                        </div>
+
                     <div className="absolute inset-0 p-6 flex items-center justify-center">
                       <div className="w-full">
                         <DevicePreview
@@ -140,6 +151,21 @@ export const FeaturedWork = () => {
                     </div>
                   </div>
                   <CardContent className="p-6">
+                    <div className="mb-4 flex items-center justify-between">
+                      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
+                        {project.category}
+                      </Badge>
+                      {project.metrics && (
+                        <div className="text-right">
+                          <div className="text-xs uppercase tracking-wide text-muted-foreground">Result</div>
+                          <div className="text-sm font-semibold text-primary">
+                            {project.metrics.improvement}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{project.metrics.metric}</div>
+                        </div>
+                      )}
+                    </div>
+
                     <h3 className="text-xl font-display font-semibold mb-2 group-hover:text-gradient transition-colors">
                       {project.title}
                     </h3>
@@ -151,17 +177,20 @@ export const FeaturedWork = () => {
                         </Badge>
                       ))}
                     </div>
-                    {project.metrics && (
-                      <div className="flex items-center justify-between pt-4 border-t border-border">
-                        <div>
-                          <div className="text-2xl font-bold text-primary">{project.metrics.improvement}</div>
-                          <div className="text-xs text-muted-foreground">{project.metrics.metric}</div>
-                        </div>
-                        <div className="text-primary text-sm font-medium">
-                          View Case Study →
-                        </div>
+                    <div className="flex items-center justify-between gap-4 pt-4 border-t border-border/60">
+                      <div className="text-sm font-medium text-primary inline-flex items-center gap-2">
+                        View Case Study
+                        <ArrowRight className="h-4 w-4" />
                       </div>
-                    )}
+                      {project.websiteUrl && (
+                        <Button variant="ghost" size="sm" asChild>
+                          <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer">
+                            Visit Site
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </Button>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               </Link>
