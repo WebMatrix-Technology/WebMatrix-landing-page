@@ -28,25 +28,36 @@ const values = [
 
 const team = [
   {
-    name: 'Alex Morgan',
-    role: 'Founder & Creative Director',
-    bio: '10+ years crafting digital experiences',
+    name: 'Jay Tiwary',
+    role: 'CEO & Founder',
+    bio: 'A passionate entrepreneur with a knack for building innovative digital solutions. With a background in computer science and business, Jay is dedicated to creating meaningful impact through technology. He is the driving force behind the company, ensuring that every project is delivered with precision and excellence. He is a 10x developer and a master of his craft.',
   },
   {
-    name: 'Jordan Lee',
+    name: 'Abhi Singh',
     role: 'Lead Developer',
-    bio: 'Full-stack expert & performance enthusiast',
+    bio: 'Full-stack expert & performance enthusiast with a passion for building scalable and efficient solutions.',
   },
   {
-    name: 'Sam Rivera',
-    role: 'UX Designer',
-    bio: 'Turning complex problems into elegant solutions',
+    name: 'Shubham Mulye',
+    role: 'Sr. Designer',
+    bio: 'A talented designer with a passion for creating beautiful and functional digital experiences.',
   },
   {
-    name: 'Casey Kim',
-    role: '3D Specialist',
-    bio: 'WebGL wizard & creative technologist',
+    name: 'Pawan Mishra',
+    role: 'Manager',
+    bio: 'A dedicated manager with a passion for leading and inspiring teams to deliver exceptional results.',
   },
+  {
+    name: 'Mahadev Patil',
+    role: 'Content and Blog Writer',
+    bio: 'A skilled wordsmith with expertise in crafting compelling narratives that resonate with audiences. Specializes in SEO-optimized content, technical writing, and storytelling that drives engagement and conversions.',
+  },
+  {
+    name: 'Ishita Naik',
+    role: 'Social Media Manager',
+    bio: 'A creative strategist who transforms brands through innovative social media campaigns. Expert in community building, content curation, and analytics-driven growth strategies that amplify brand presence across platforms.',
+  },
+
 ];
 
 const About = () => {
