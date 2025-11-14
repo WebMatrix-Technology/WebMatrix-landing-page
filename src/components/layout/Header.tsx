@@ -40,7 +40,7 @@ export const Header = () => {
       <div className="container mx-auto px-4">
         <nav className="flex items-center justify-between">
           <Link to="/" className="text-2xl font-display font-bold text-gradient">
-            Your Company
+            WebMatrix
           </Link>
 
           {/* Desktop Navigation */}
