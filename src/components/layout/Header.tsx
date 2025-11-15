@@ -39,7 +39,8 @@ export const Header = () => {
     >
       <div className="container mx-auto px-4">
         <nav className="flex items-center justify-between">
-          <Link to="/" className="text-2xl font-display font-bold text-gradient">
+          <Link to="/" className="flex items-center gap-2 text-2xl font-furore font-bold text-gradient">
+            <img src="/favicon.ico" alt="WebMatrix" className="h-14 w-14" />
             WebMatrix
           </Link>
 

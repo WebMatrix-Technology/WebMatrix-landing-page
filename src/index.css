@@ -122,6 +122,16 @@ All colors MUST be HSL.
     font-display: swap;
   }
 
+  @font-face {
+    font-family: 'Furore';
+    src: url('/fonts/Furore.woff2') format('woff2'),
+         url('/fonts/Furore.woff') format('woff'),
+         url('/fonts/Furore.otf') format('opentype');
+    font-display: swap;
+    font-weight: normal;
+    font-style: normal;
+  }
+
   * {
     @apply border-border;
   }

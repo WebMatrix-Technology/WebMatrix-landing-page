@@ -56,6 +56,7 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['Clash Display', 'Inter', 'system-ui', 'sans-serif'],
+        furore: ['Furore', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         'display-xl': ['5rem', { lineHeight: '1', letterSpacing: '-0.02em' }],
