@@ -286,7 +286,7 @@ const About = () => {
                 transition={{ delay: 0.3 }}
                 className="text-5xl md:text-6xl font-display font-bold text-gradient mb-3"
               >
-                85+
+                90+
               </motion.div>
               <p className="text-muted-foreground font-medium">Avg. Lighthouse Score</p>
             </motion.div>

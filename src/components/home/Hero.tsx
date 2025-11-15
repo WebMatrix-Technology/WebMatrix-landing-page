@@ -87,12 +87,12 @@ export const Hero = () => {
             </div>
             <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-accent" />
-              <span>50+ Projects Delivered</span>
+              <span>10+ Projects Delivered</span>
             </div>
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-primary" />
               <span>WCAG 2.2 AA Compliant</span>
-            </div>
+            </div> */}
           </motion.div>
         </div>
       </div>
