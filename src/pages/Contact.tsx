@@ -78,8 +78,8 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Email</h3>
-                    <a href="mailto:hello@webmatrix.com" className="text-muted-foreground hover:text-primary transition-colors">
-                      hello@webmatrix.com
+                    <a href="mailto:webmatrix.work@gmail.com" className="text-muted-foreground hover:text-primary transition-colors">
+                      webmatrix.work@gmail.com
                     </a>
                   </div>
                 </div>
@@ -89,8 +89,8 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold mb-1">Phone</h3>
-                    <a href="tel:+15551234567" className="text-muted-foreground hover:text-primary transition-colors">
-                      +1 (555) 123-4567
+                    <a href="tel:+919112144335" className="text-muted-foreground hover:text-primary transition-colors">
+                      +91 9112144335 / +91 7448223550
                     </a>
                   </div>
                 </div>
@@ -101,8 +101,7 @@ const Contact = () => {
                   <div>
                     <h3 className="font-semibold mb-1">Location</h3>
                     <p className="text-muted-foreground">
-                      San Francisco, CA<br />
-                      United States
+                      Mumbai, Maharashtra
                     </p>
                   </div>
                 </div>
