@@ -1,3 +1,5 @@
+'use client';
+
 import { motion } from 'framer-motion';
 import { Code, Palette, Zap, Layers, Sparkles, TrendingUp } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -67,7 +69,7 @@ export const Services = () => {
                 ease: [0.22, 1, 0.36, 1]
               }}
             >
-              <Card className="group h-full border-border/50 hover:border-primary/50 transition-all hover:shadow-medium">
+              <Card className="group h-full border-border/60 dark:border-border/50 hover:border-primary/60 dark:hover:border-primary/50 transition-all hover:shadow-medium bg-card/50 dark:bg-card">
                 <CardContent className="p-8">
                   <div className="mb-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center group-hover:shadow-glow transition-all">
                     <service.icon className="h-7 w-7 text-primary" />

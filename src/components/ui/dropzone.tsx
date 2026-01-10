@@ -4,9 +4,8 @@ import { cn } from '@/lib/utils';
 type DropzoneProps = {
   label?: string;
   className?: string;
-  onImageSelected: (params: { file: File; dataUrl: string; cloudinaryUrl?: string }) => void;
+  onImageSelected: (params: { file: File; dataUrl: string; url?: string }) => void;
   previewUrl?: string;
-  uploadToCloudinary?: boolean;
   getAccessToken?: () => Promise<string | null>;
 };
 
@@ -15,7 +14,6 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
   className,
   onImageSelected,
   previewUrl,
-  uploadToCloudinary = true,
   getAccessToken,
 }) => {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
@@ -32,16 +30,19 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
     const file = files[0];
     if (!file.type.startsWith('image/')) return;
     
-    // Show preview immediately
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = String(reader.result || '');
-      setPreview(dataUrl);
-    };
-    reader.readAsDataURL(file);
+    // Create base64 preview for immediate feedback
+    const base64DataUrl = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = String(reader.result || '');
+        setPreview(dataUrl);
+        resolve(dataUrl);
+      };
+      reader.readAsDataURL(file);
+    });
 
-    // Upload to Cloudinary if enabled and token provider available
-    if (uploadToCloudinary && getAccessToken) {
+    // Try to upload to Supabase Storage if token is available
+    if (getAccessToken) {
       try {
         setUploading(true);
         const token = await getAccessToken();
@@ -52,7 +53,7 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
         const formData = new FormData();
         formData.append('image', file);
 
-        const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:4000');
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:4000');
         const response = await fetch(`${apiBase}/api/upload`, {
           method: 'POST',
           headers: {
@@ -67,28 +68,22 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
         }
 
         const result = await response.json();
-        setPreview(result.url);
-        onImageSelected({ file, dataUrl: result.url, cloudinaryUrl: result.url });
+        if (result.url) {
+          setPreview(result.url);
+          onImageSelected({ file, dataUrl: result.url, url: result.url });
+          setUploading(false);
+          return;
+        }
       } catch (error) {
-        console.error('Cloudinary upload failed:', error);
-        // Fallback to base64
-        const fallbackReader = new FileReader();
-        fallbackReader.onload = () => {
-          const dataUrl = String(fallbackReader.result || '');
-          onImageSelected({ file, dataUrl });
-        };
-        fallbackReader.readAsDataURL(file);
+        console.error('Upload to Supabase Storage failed:', error);
+        // Fall through to base64 fallback
       } finally {
         setUploading(false);
       }
-    } else {
-      // Just use base64
-      reader.onload = () => {
-        const dataUrl = String(reader.result || '');
-        onImageSelected({ file, dataUrl });
-      };
-      reader.readAsDataURL(file);
     }
+
+    // Fallback to base64 if upload fails or no token
+    onImageSelected({ file, dataUrl: base64DataUrl });
   };
 
   return (

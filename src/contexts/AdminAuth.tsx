@@ -1,9 +1,21 @@
+'use client';
+
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { createClient, User } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// Validate Supabase configuration
+if (!supabaseUrl || !supabaseKey || supabaseUrl === 'https://placeholder.supabase.co' || supabaseKey === 'placeholder-key') {
+  console.error(
+    'Missing Supabase configuration. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.'
+  );
+}
+
+const supabase = supabaseUrl && supabaseKey 
+  ? createClient(supabaseUrl, supabaseKey)
+  : createClient('https://placeholder.supabase.co', 'placeholder-key');
 
 export type AdminAuthContextType = {
   isAuthenticated: boolean;
@@ -20,7 +32,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const allowed = useMemo(() => {
-    const raw = (import.meta.env.VITE_ADMIN_ALLOWLIST || '').trim();
+    const raw = (process.env.NEXT_PUBLIC_ADMIN_ALLOWLIST || '').trim();
     return raw ? raw.split(',').map(e => e.trim().toLowerCase()).filter(Boolean) : [];
   }, []);
 
@@ -57,15 +69,29 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, [allowed]);
 
   const login = async (email: string, password: string) => {
+    // Check if Supabase is properly configured
+    if (!supabaseUrl || !supabaseKey || supabaseUrl === 'https://placeholder.supabase.co' || supabaseKey === 'placeholder-key') {
+      return { error: 'Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.' };
+    }
+
     if (allowed.length > 0 && !allowed.includes(email.toLowerCase())) {
       return { error: 'This email is not allowed to access admin.' };
     }
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { error: error.message };
-    if (!data?.user) return { error: 'Invalid login.' };
-    setUser(data.user);
-    setIsAuthenticated(true);
-    return {};
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) return { error: error.message };
+      if (!data?.user) return { error: 'Invalid login.' };
+      setUser(data.user);
+      setIsAuthenticated(true);
+      return {};
+    } catch (err) {
+      console.error('Login error:', err);
+      if (err instanceof Error) {
+        return { error: err.message };
+      }
+      return { error: 'Failed to connect to authentication service. Please check your internet connection and Supabase configuration.' };
+    }
   };
 
   const logout = async () => {

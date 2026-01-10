@@ -1,8 +1,10 @@
 // src/components/home/FeaturedWork.tsx
 
+'use client';
+
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { ArrowRight, ExternalLink, RefreshCw } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,7 +57,7 @@ export const FeaturedWork = () => {
   const skeletonCount = Math.max(projectsToShow.length || fallbackProjects.length || 6, 3);
 
   return (
-    <section className="py-24 bg-secondary/30">
+    <section className="py-24 bg-secondary/40 dark:bg-secondary/30">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.95 }}
@@ -123,11 +125,11 @@ export const FeaturedWork = () => {
                     ease: [0.22, 1, 0.36, 1],
                   }}
                 >
-                  <Link to={`/work/${project.id}`}>
-                    <Card className="group overflow-hidden border-border/50 hover:border-primary/50 transition-all hover:shadow-glow h-full">
-                      <div className="aspect-video relative overflow-hidden rounded-t-lg bg-zinc-900">
+                  <Link href={`/work/${project.id}`}>
+                    <Card className="group overflow-hidden border-border/60 dark:border-border/50 hover:border-primary/60 dark:hover:border-primary/50 transition-all hover:shadow-glow h-full bg-card/50 dark:bg-card">
+                      <div className="aspect-video relative overflow-hidden rounded-t-lg bg-zinc-900 dark:bg-zinc-900">
                         <div className="absolute left-4 top-4 z-10">
-                          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/60 bg-background/70 text-sm font-semibold text-primary shadow-lg backdrop-blur">
+                          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border/70 dark:border-border/60 bg-background/90 dark:bg-background/70 text-sm font-semibold text-primary shadow-lg backdrop-blur-sm dark:backdrop-blur">
                             {index + 1}
                           </span>
                         </div>
@@ -144,7 +146,7 @@ export const FeaturedWork = () => {
                       </div>
                     </div>
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 dark:from-black/30 via-transparent to-transparent pointer-events-none" />
 
                     <div className="absolute top-4 right-4">
                       <ExternalLink className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -177,17 +179,23 @@ export const FeaturedWork = () => {
                         </Badge>
                       ))}
                     </div>
-                    <div className="flex items-center justify-between gap-4 pt-4 border-t border-border/60">
+                    <div className="flex items-center justify-between gap-4 pt-4 border-t border-border/70 dark:border-border/60">
                       <div className="text-sm font-medium text-primary inline-flex items-center gap-2">
                         View Case Study
                         <ArrowRight className="h-4 w-4" />
                       </div>
                       {project.websiteUrl && (
-                        <Button variant="ghost" size="sm" asChild>
-                          <a href={project.websiteUrl} target="_blank" rel="noopener noreferrer">
-                            Visit Site
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            window.open(project.websiteUrl, '_blank', 'noopener,noreferrer');
+                          }}
+                        >
+                          Visit Site
+                          <ExternalLink className="h-4 w-4" />
                         </Button>
                       )}
                     </div>
@@ -206,7 +214,7 @@ export const FeaturedWork = () => {
           className="text-center"
         >
           <Link 
-            to="/work"
+            href="/work"
             className="inline-flex items-center gap-2 text-primary hover:text-accent transition-colors font-medium"
           >
             View All Projects

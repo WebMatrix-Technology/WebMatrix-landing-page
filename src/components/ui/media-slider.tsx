@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useRef, useState } from 'react';
 
 type MediaItem = { type: 'image' | 'video'; src: string };

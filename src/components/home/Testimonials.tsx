@@ -1,3 +1,5 @@
+'use client';
+
 import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -29,7 +31,7 @@ const testimonials = [
 
 export const Testimonials = () => {
   return (
-    <section className="py-24 bg-secondary/30">
+    <section className="py-24 bg-secondary/40 dark:bg-secondary/30">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.95 }}
@@ -59,7 +61,7 @@ export const Testimonials = () => {
                 ease: [0.22, 1, 0.36, 1]
               }}
             >
-              <Card className="h-full border-border/50 hover:border-primary/50 transition-all hover:shadow-medium">
+              <Card className="h-full border-border/60 dark:border-border/50 hover:border-primary/60 dark:hover:border-primary/50 transition-all hover:shadow-medium bg-card/50 dark:bg-card">
                 <CardContent className="p-8">
                   <div className="flex gap-1 mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (

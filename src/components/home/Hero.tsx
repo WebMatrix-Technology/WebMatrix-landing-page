@@ -1,8 +1,10 @@
+'use client';
+
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Scene3D } from '@/components/3d/Scene3D';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 
 export const Hero = () => {
   return (
@@ -24,7 +26,7 @@ export const Hero = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             style={{ marginBottom: 'calc(1.618rem * 1.618)' }}
           >
-            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-medium mb-6">
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-medium mb-6 text-foreground/90">
               <Sparkles className="h-4 w-4 text-accent" />
               Amazing web studio
             </span>
@@ -63,13 +65,13 @@ export const Hero = () => {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Button asChild size="lg" className="shadow-glow hover:shadow-accent-glow transition-all">
-              <Link to="/contact">
+              <Link href="/contact">
                 Start a Project
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="glass">
-              <Link to="/work">See Our Work</Link>
+              <Link href="/work">See Our Work</Link>
             </Button>
           </motion.div>
 

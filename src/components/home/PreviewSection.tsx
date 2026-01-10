@@ -1,3 +1,5 @@
+'use client';
+
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 
@@ -78,7 +80,7 @@ export const PreviewSection = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="relative mx-auto max-w-6xl overflow-visible rounded-[1.4rem] border border-border/50 bg-gradient-to-br from-background/95 via-background/80 to-background/95 shadow-[0_24px_70px_-52px_rgba(59,130,246,0.5)] backdrop-blur-xl"
+          className="relative mx-auto max-w-6xl overflow-visible rounded-[1.4rem] border border-border/60 dark:border-border/50 bg-gradient-to-br from-background/98 via-background/90 to-background/98 dark:from-background/95 dark:via-background/80 dark:to-background/95 shadow-medium dark:shadow-[0_24px_70px_-52px_rgba(59,130,246,0.5)] backdrop-blur-xl"
         >
           <div className="absolute inset-0">
             <div className="absolute -left-20 top-1/3 h-[260px] w-[260px] rounded-full bg-primary/25 opacity-30 blur-[120px]" />
@@ -86,7 +88,7 @@ export const PreviewSection = () => {
           </div>
 
           <div className="relative px-3 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10">
-            <div className="group relative mx-auto max-w-4xl overflow-visible rounded-[1.25rem] border border-border/60 bg-background/90 px-4 py-6 shadow-[0_20px_55px_-38px_rgba(15,23,42,0.55)] sm:px-6 sm:py-8">
+            <div className="group relative mx-auto max-w-4xl overflow-visible rounded-[1.25rem] border border-border/70 dark:border-border/60 bg-background/95 dark:bg-background/90 px-4 py-6 shadow-soft dark:shadow-[0_20px_55px_-38px_rgba(15,23,42,0.55)] sm:px-6 sm:py-8">
               <div className="pointer-events-none absolute -top-14 left-1/2 h-28 w-28 -translate-x-1/2 rounded-full bg-primary/20 blur-[80px]" />
               <div className="pointer-events-none absolute -bottom-16 right-4 h-32 w-32 rounded-full bg-accent/20 blur-[100px]" />
               <div className="pointer-events-none absolute inset-0 border border-white/5 opacity-10" />

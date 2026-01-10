@@ -1,6 +1,8 @@
+'use client';
+
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { ArrowRight, MessageSquare } from 'lucide-react';
 
 export const CTA = () => {
@@ -32,13 +34,13 @@ export const CTA = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" variant="secondary" className="shadow-strong">
-                <Link to="/contact">
+                <Link href="/contact">
                   <MessageSquare className="mr-2 h-5 w-5" />
                   Start a Project
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
-                <Link to="/work">
+                <Link href="/work">
                   View Our Work
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
