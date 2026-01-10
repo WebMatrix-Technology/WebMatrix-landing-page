@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Route segment config for Vercel
+export const runtime = 'nodejs';
+
 // External backend proxy mode
 function normalizeBackendUrl(url: string | undefined | null): string {
   if (!url) return '';
@@ -74,7 +77,12 @@ async function handleRequest(
       if (method && !['GET', 'HEAD'].includes(method.toUpperCase())) {
         try {
           const contentType = request.headers.get('content-type');
-          if (contentType?.includes('application/json')) {
+          if (contentType?.includes('multipart/form-data')) {
+            // For file uploads, pass through the FormData
+            body = await request.formData();
+            // Don't set Content-Type header - browser sets it with boundary
+            delete forwardHeaders['Content-Type'];
+          } else if (contentType?.includes('application/json')) {
             body = JSON.stringify(await request.json());
             forwardHeaders['Content-Type'] = 'application/json';
           } else {
