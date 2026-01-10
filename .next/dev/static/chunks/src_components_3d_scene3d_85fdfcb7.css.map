@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["file:///H:/Projects/all/WebMatrix/WebMatrix-landing-page/src/components/3d/scene3d.css"],"sourcesContent":[".scene3d-canvas {\r\n  background: transparent;\r\n}\r\n"],"names":[],"mappings":"AAAA"}}]
-}
