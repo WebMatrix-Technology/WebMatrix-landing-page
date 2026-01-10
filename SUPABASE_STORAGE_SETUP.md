@@ -200,3 +200,4 @@ Currently accepts any image type. To restrict:
 - Update `accept="image/*"` in `dropzone.tsx` to specific types
 - Update bucket MIME type restrictions in Supabase Dashboard
 
+
