@@ -19,7 +19,7 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       const form = new FormData(e.currentTarget);
       const name = String(form.get('name') || '').trim();
@@ -129,11 +129,11 @@ export default function ContactPage() {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <Label htmlFor="name">Name *</Label>
-                      <Input id="name" name="name" placeholder="John Doe" required />
+                      <Input id="name" name="name" placeholder="Enter your name" required />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="email">Email *</Label>
-                      <Input id="email" name="email" type="email" placeholder="john@example.com" required />
+                      <Input id="email" name="email" type="email" placeholder="Enter your email" required />
                     </div>
                   </div>
 
@@ -160,12 +160,12 @@ export default function ContactPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="message">Project Details *</Label>
-                    <Textarea 
+                    <Textarea
                       id="message"
                       name="message"
-                      placeholder="Tell us about your project..." 
-                      className="min-h-[150px]" 
-                      required 
+                      placeholder="Tell us about your project..."
+                      className="min-h-[150px]"
+                      required
                     />
                   </div>
 
