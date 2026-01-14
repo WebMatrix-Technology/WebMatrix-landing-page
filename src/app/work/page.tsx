@@ -115,58 +115,58 @@ export default function WorkPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {projects.map((project, index) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Link href={`/work/${project.id}`}>
-                <Card className="group overflow-hidden border-border/60 dark:border-border/50 hover:border-primary/60 dark:hover:border-primary/50 transition-all hover:shadow-glow h-full bg-card/50 dark:bg-card">
-                  <div className="aspect-video relative overflow-hidden rounded-t-lg bg-zinc-900 dark:bg-zinc-900">
-                    <div className="absolute inset-0 p-6 flex items-center justify-center">
-                      <div className="w-full">
-                        <DevicePreview
-                          desktopImage={project.image}
-                          mobileImage={project.mobileImage}
-                          title={project.title}
-                          className="mx-auto"
-                          display="both"
-                        />
-                      </div>
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 dark:from-black/30 via-transparent to-transparent pointer-events-none" />
-                    <div className="absolute top-4 right-4">
-                      <ExternalLink className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                  </div>
-                  <CardContent className="p-6">
-                    <h3 className="text-xl font-display font-semibold mb-2 group-hover:text-gradient transition-colors">
-                      {project.title}
-                    </h3>
-                    <p className="text-muted-foreground mb-4">{project.description}</p>
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {project.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                    {project.metrics && (
-                      <div className="flex items-center justify-between pt-4 border-t border-border/70 dark:border-border">
-                        <div>
-                          <div className="text-2xl font-bold text-primary">{project.metrics.improvement}</div>
-                          <div className="text-xs text-muted-foreground">{project.metrics.metric}</div>
-                        </div>
-                        <div className="text-primary text-sm font-medium">
-                          View Case Study →
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.5 }}
+              >
+                <Link href={`/work/${project.id}`}>
+                  <Card className="group overflow-hidden border-border/60 dark:border-border/50 hover:border-primary/60 dark:hover:border-primary/50 transition-all hover:shadow-glow h-full bg-card/50 dark:bg-card">
+                    <div className="aspect-video relative overflow-hidden rounded-t-lg bg-zinc-900 dark:bg-zinc-900">
+                      <div className="absolute inset-0 p-6 flex items-center justify-center">
+                        <div className="w-full">
+                          <DevicePreview
+                            desktopImage={project.image}
+                            mobileImage={project.mobileImage}
+                            title={project.title}
+                            className="mx-auto"
+                            display="both"
+                          />
                         </div>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </Link>
-            </motion.div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 dark:from-black/30 via-transparent to-transparent pointer-events-none" />
+                      <div className="absolute top-4 right-4">
+                        <ExternalLink className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </div>
+                    <CardContent className="p-6">
+                      <h3 className="text-xl font-display font-semibold mb-2 group-hover:text-gradient transition-colors">
+                        {project.title}
+                      </h3>
+                      <p className="text-muted-foreground mb-4">{project.description}</p>
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {project.tags.map((tag) => (
+                          <Badge key={tag} variant="secondary">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                      {project.metrics && (
+                        <div className="flex items-center justify-between pt-4 border-t border-border/70 dark:border-border">
+                          <div>
+                            <div className="text-2xl font-bold text-primary">{project.metrics.improvement}</div>
+                            <div className="text-xs text-muted-foreground">{project.metrics.metric}</div>
+                          </div>
+                          <div className="text-primary text-sm font-medium">
+                            View Case Study →
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
+              </motion.div>
             ))}
           </div>
         )}

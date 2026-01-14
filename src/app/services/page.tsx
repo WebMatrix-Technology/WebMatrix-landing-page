@@ -76,7 +76,7 @@ export default function ServicesPage() {
               key={pkg.name}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.1, duration: 0.5 }}
             >
               <Card className={`h-full relative ${pkg.popular ? 'border-primary shadow-glow' : 'border-border/50'}`}>
                 {pkg.popular && (
@@ -110,7 +110,7 @@ export default function ServicesPage() {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
           className="text-center"
         >
           <h2 className="text-3xl md:text-4xl font-display mb-4">

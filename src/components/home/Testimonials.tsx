@@ -37,7 +37,7 @@ export const Testimonials = () => {
           initial={{ opacity: 0, y: 40, scale: 0.95 }}
           whileInView={{ opacity: 1, y: 0, scale: 1 }}
           viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-4xl lg:text-display-sm font-display mb-4">
@@ -55,8 +55,8 @@ export const Testimonials = () => {
               initial={{ opacity: 0, y: 50, scale: 0.9 }}
               whileInView={{ opacity: 1, y: 0, scale: 1 }}
               viewport={{ once: true, amount: 0.2 }}
-              transition={{ 
-                duration: 0.6, 
+              transition={{
+                duration: 0.5,
                 delay: index * 0.12,
                 ease: [0.22, 1, 0.36, 1]
               }}

@@ -73,7 +73,7 @@ export default function AboutPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
           className="text-center mb-20"
         >
           <motion.div
@@ -89,9 +89,9 @@ export default function AboutPage() {
             About <span className="text-gradient">Us</span>
           </h1>
           <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-            We're a team of passionate designers, developers, and creative technologists 
-            dedicated to pushing the boundaries of what's possible on the web. 
-            We've helped over 10 companies transform their digital presence with 
+            We're a team of passionate designers, developers, and creative technologists
+            dedicated to pushing the boundaries of what's possible on the web.
+            We've helped over 10 companies transform their digital presence with
             cutting-edge web experiences.
           </p>
         </motion.div>
@@ -101,7 +101,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.5 }}
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-display mb-4">
@@ -144,7 +144,7 @@ export default function AboutPage() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.5 }}
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-display mb-4">
@@ -162,16 +162,16 @@ export default function AboutPage() {
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ 
-                  delay: index * 0.1, 
-                  duration: 0.6,
+                transition={{
+                  delay: index * 0.1,
+                  duration: 0.5,
                   ease: [0.22, 1, 0.36, 1]
                 }}
               >
                 <Card className="h-full border-border/50 hover:border-primary/50 transition-all duration-500 hover:shadow-glow hover:-translate-y-2 group relative overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-accent to-primary transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"></div>
-                  
+
                   <CardContent className="p-8 relative z-10">
                     <div className="flex flex-col items-center text-center">
                       <motion.div
@@ -184,7 +184,7 @@ export default function AboutPage() {
                           </AvatarFallback>
                         </Avatar>
                       </motion.div>
-                      
+
                       <div className="mb-4">
                         <h3 className="text-2xl font-display font-semibold mb-2 group-hover:text-gradient transition-all duration-300">
                           {member.name}
@@ -193,11 +193,11 @@ export default function AboutPage() {
                           <span className="text-primary text-sm font-medium">{member.role}</span>
                         </div>
                       </div>
-                      
+
                       <p className="text-muted-foreground text-sm leading-relaxed mb-6 min-h-[4.5rem]">
                         {member.bio}
                       </p>
-                      
+
                       <div className="flex items-center gap-3 pt-4 border-t border-border/50 group-hover:border-primary/30 transition-colors duration-300">
                         <motion.a
                           href="#"
@@ -239,7 +239,7 @@ export default function AboutPage() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.5 }}
           className="mt-24"
         >
           <div className="grid md:grid-cols-3 gap-6">
@@ -261,7 +261,7 @@ export default function AboutPage() {
               </motion.div>
               <p className="text-muted-foreground font-medium">Projects Delivered</p>
             </motion.div>
-            
+
             <motion.div
               whileHover={{ scale: 1.05, y: -5 }}
               className="p-10 rounded-2xl glass border border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-glow text-center group"
@@ -280,7 +280,7 @@ export default function AboutPage() {
               </motion.div>
               <p className="text-muted-foreground font-medium">Avg. Lighthouse Score</p>
             </motion.div>
-            
+
             <motion.div
               whileHover={{ scale: 1.05, y: -5 }}
               className="p-10 rounded-2xl glass border border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-glow text-center group"

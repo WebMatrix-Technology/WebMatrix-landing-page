@@ -23,7 +23,7 @@ export const Hero = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
             style={{ marginBottom: 'calc(1.618rem * 1.618)' }}
           >
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-medium mb-6 text-foreground/90">
@@ -35,7 +35,7 @@ export const Hero = () => {
           <motion.h1
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
             className="text-4xl md:text-5xl lg:text-display-lg font-display"
             style={{ marginBottom: 'calc(1.618rem * 1.618)' }}
           >
@@ -48,11 +48,11 @@ export const Hero = () => {
           <motion.p
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
             className="text-lg md:text-xl text-muted-foreground mx-auto"
-            style={{ 
+            style={{
               marginBottom: 'calc(1.618rem * 2.618)',
-              maxWidth: '61.8%' 
+              maxWidth: '61.8%'
             }}
           >
             From concept to launch—3D, motion, and full-stack development that converts.
@@ -61,7 +61,7 @@ export const Hero = () => {
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Button asChild size="lg" className="shadow-glow hover:shadow-accent-glow transition-all">
@@ -79,7 +79,7 @@ export const Hero = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.7 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
             className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground"
             style={{ marginTop: 'calc(1.618rem * 4)' }}
           >
@@ -103,7 +103,7 @@ export const Hero = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: 1 }}
+        transition={{ duration: 0.5, delay: 1 }}
         className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
       >
         <div className="w-6 h-10 border-2 border-muted-foreground/30 rounded-full flex justify-center">

@@ -60,7 +60,7 @@ export default function ProcessPage() {
               key={step.title}
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.1, duration: 0.5 }}
               className="relative"
             >
               {index < steps.length - 1 && (
@@ -92,7 +92,7 @@ export default function ProcessPage() {
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
           className="text-center mt-16 p-12 rounded-3xl glass"
         >
           <h2 className="text-3xl font-display font-bold mb-4">
