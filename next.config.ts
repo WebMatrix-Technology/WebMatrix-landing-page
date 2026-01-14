@@ -8,7 +8,23 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'localhost',
       },
+      {
+        protocol: 'https',
+        hostname: 'web-matrix-backend.vercel.app',
+      },
+      {
+        protocol: 'https',
+        hostname: 'vlpxvcrzraenqjppoeom.supabase.co',
+      },
     ],
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://web-matrix-backend.vercel.app/api/:path*', // Proxy to Backend
+      },
+    ];
   },
 };
 
