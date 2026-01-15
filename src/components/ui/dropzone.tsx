@@ -52,7 +52,7 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
 
       // Upload to Supabase Storage directly
       const { data, error } = await supabase.storage
-        .from('uploads') // Assuming 'uploads' bucket exists
+        .from('project-images') // Bucket name found in backend/api/upload.ts
         .upload(filePath, file);
 
       if (error) {
@@ -62,7 +62,7 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
       if (data) {
         // Get public URL
         const { data: { publicUrl } } = supabase.storage
-          .from('uploads')
+          .from('project-images')
           .getPublicUrl(filePath);
 
         setPreview(publicUrl);
