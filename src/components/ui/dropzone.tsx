@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
 
 type DropzoneProps = {
   label?: string;
@@ -14,7 +15,7 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
   className,
   onImageSelected,
   previewUrl,
-  getAccessToken,
+  // getAccessToken, // Not needed for direct upload with Anon key (assuming public bucket or RLS allows anon uploads)
 }) => {
   const inputRef = React.useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = React.useState(false);
@@ -29,7 +30,7 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
     if (!files || files.length === 0) return;
     const file = files[0];
     if (!file.type.startsWith('image/')) return;
-    
+
     // Create base64 preview for immediate feedback
     const base64DataUrl = await new Promise<string>((resolve) => {
       const reader = new FileReader();
@@ -41,49 +42,41 @@ export const ImageDropzone: React.FC<DropzoneProps> = ({
       reader.readAsDataURL(file);
     });
 
-    // Try to upload to Supabase Storage if token is available
-    if (getAccessToken) {
-      try {
-        setUploading(true);
-        const token = await getAccessToken();
-        if (!token) {
-          throw new Error('No access token available');
-        }
-        
-        const formData = new FormData();
-        formData.append('image', file);
+    try {
+      setUploading(true);
 
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:4000');
-        const response = await fetch(`${apiBase}/api/upload`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-          body: formData,
-        });
+      // Generate a unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || 'Upload failed');
-        }
+      // Upload to Supabase Storage directly
+      const { data, error } = await supabase.storage
+        .from('uploads') // Assuming 'uploads' bucket exists
+        .upload(filePath, file);
 
-        const result = await response.json();
-        if (result.url) {
-          setPreview(result.url);
-          onImageSelected({ file, dataUrl: result.url, url: result.url });
-          setUploading(false);
-          return;
-        }
-      } catch (error) {
-        console.error('Upload to Supabase Storage failed:', error);
-        // Fall through to base64 fallback
-      } finally {
-        setUploading(false);
+      if (error) {
+        throw error;
       }
-    }
 
-    // Fallback to base64 if upload fails or no token
-    onImageSelected({ file, dataUrl: base64DataUrl });
+      if (data) {
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('uploads')
+          .getPublicUrl(filePath);
+
+        setPreview(publicUrl);
+        onImageSelected({ file, dataUrl: publicUrl, url: publicUrl });
+        return;
+      }
+    } catch (error) {
+      console.error('Upload to Supabase Storage failed:', error);
+      // Fallback to base64 if upload fails (optional, or show error)
+      // onImageSelected({ file, dataUrl: base64DataUrl }); // Uncomment if you want fallback
+      alert('Upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
