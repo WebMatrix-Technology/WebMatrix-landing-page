@@ -67,57 +67,41 @@ async function handleRequest(
       const forwardHeaders: Record<string, string> = {};
       request.headers.forEach((value, key) => {
         const lower = key.toLowerCase();
+        // Do not remove Content-Type; let it pass through (essential for multipart boundaries)
         if (!['host', 'connection', 'content-length'].includes(lower)) {
           forwardHeaders[key] = value;
         }
       });
 
-      let body: BodyInit | undefined = undefined;
+      console.log('[api-proxy] ->', request.method, targetUrl);
+
+      // Stream the body if it's not GET/HEAD
       const method = request.method;
+      let body: ReadableStream | null = null;
+      // @ts-ignore: 'duplex' is a valid fetch option in Node > 18 but might be missing in types
+      const fetchOptions: RequestInit & { duplex?: string } = {
+        method,
+        headers: forwardHeaders,
+      };
+
       if (method && !['GET', 'HEAD'].includes(method.toUpperCase())) {
-        try {
-          const contentType = request.headers.get('content-type');
-          if (contentType?.includes('multipart/form-data')) {
-            // For file uploads, pass through the FormData
-            body = await request.formData();
-            // Don't set Content-Type header - browser sets it with boundary
-            delete forwardHeaders['Content-Type'];
-          } else if (contentType?.includes('application/json')) {
-            body = JSON.stringify(await request.json());
-            forwardHeaders['Content-Type'] = 'application/json';
-          } else {
-            body = await request.text();
-          }
-        } catch {
-          body = undefined;
+        if (request.body) {
+          fetchOptions.body = request.body;
+          fetchOptions.duplex = 'half';
         }
       }
 
-      console.log('[api-proxy] ->', method, targetUrl);
-
-      const backendResponse = await fetch(targetUrl, {
-        method,
-        headers: forwardHeaders,
-        body,
-      });
+      const backendResponse = await fetch(targetUrl, fetchOptions);
 
       const contentType = backendResponse.headers.get('content-type') || 'application/json';
       const responseHeaders = new Headers();
       responseHeaders.set('content-type', contentType);
 
-      if (contentType.includes('application/json')) {
-        const data = await backendResponse.json().catch(() => ({}));
-        return NextResponse.json(data, {
-          status: backendResponse.status,
-          headers: responseHeaders,
-        });
-      } else {
-        const text = await backendResponse.text();
-        return new NextResponse(text, {
-          status: backendResponse.status,
-          headers: responseHeaders,
-        });
-      }
+      // Stream the response back
+      return new NextResponse(backendResponse.body, {
+        status: backendResponse.status,
+        headers: responseHeaders,
+      });
     }
 
     // If no external backend configured, show diagnostic
