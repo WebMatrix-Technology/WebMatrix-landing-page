@@ -61,7 +61,7 @@ async function handleRequest(
     // If external backend configured, proxy the request
     if (BACKEND_URL) {
       const targetBase = BACKEND_URL.replace(/\/$/, '');
-      const targetUrl = `${targetBase}${pathString}${queryString}`;
+      const targetUrl = `${targetBase}/api${pathString}${queryString}`;
 
       // Build headers
       const forwardHeaders: Record<string, string> = {};
