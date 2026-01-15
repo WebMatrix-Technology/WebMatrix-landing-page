@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'web-matrix-backend.vercel.app',
+        hostname: 'node-js-backend-amber.vercel.app',
       },
       {
         protocol: 'https',
@@ -22,7 +22,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'https://web-matrix-backend.vercel.app/api/:path*', // Proxy to Backend
+        destination: 'https://node-js-backend-amber.vercel.app/api/:path*', // Proxy to Backend
       },
     ];
   },
