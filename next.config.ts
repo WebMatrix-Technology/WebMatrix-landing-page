@@ -18,14 +18,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'https://node-js-backend-amber.vercel.app/api/:path*', // Proxy to Backend
-      },
-    ];
-  },
+
 };
 
 export default nextConfig;
