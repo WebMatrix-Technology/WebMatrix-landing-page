@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Route segment config for Vercel
-export const runtime = 'nodejs';
+export const runtime = 'edge';
 
 // External backend proxy mode
 function normalizeBackendUrl(url: string | undefined | null): string {
