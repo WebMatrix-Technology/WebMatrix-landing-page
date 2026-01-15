@@ -1,7 +1,9 @@
 'use client';
 
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { createClient, User } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
+
+import { supabase } from '@/lib/supabase';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -12,10 +14,6 @@ if (!supabaseUrl || !supabaseKey || supabaseUrl === 'https://placeholder.supabas
     'Missing Supabase configuration. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.'
   );
 }
-
-const supabase = supabaseUrl && supabaseKey 
-  ? createClient(supabaseUrl, supabaseKey)
-  : createClient('https://placeholder.supabase.co', 'placeholder-key');
 
 export type AdminAuthContextType = {
   isAuthenticated: boolean;

@@ -1,5 +1,5 @@
 // Use relative path in production (Vercel), absolute URL in development
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ||
   (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:4000');
 
 export async function apiRequest<T>(path: string, options: RequestInit = {}, token?: string | null): Promise<T> {
@@ -17,13 +17,16 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}, tok
     ...options,
     headers,
   };
-  
+
   // For GET requests, add cache control
   if (options.method === 'GET' || !options.method) {
     fetchOptions.cache = 'no-store';
   }
 
-  const response = await fetch(`${API_BASE}${path}`, fetchOptions);
+  const fullUrl = `${API_BASE}${path}`;
+  console.log(`[API] ${options.method || 'GET'} ${fullUrl}`);
+
+  const response = await fetch(fullUrl, fetchOptions);
 
   if (!response.ok) {
     let errorMessage = response.statusText;
